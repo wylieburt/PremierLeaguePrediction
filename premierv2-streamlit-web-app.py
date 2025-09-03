@@ -15,11 +15,15 @@ data_for_avg = pickle.load(open("data_for_avg.p", "rb"))
 st.title("Premier League Match Prediction")
 st.text("Data Science and Machine Learning by Wylie")
 st.text("Data provided by FBref.com")
-st.subheader("Select the Home and Away teams, along with their team weights to boost the probability. Click submit and scroll down likelihood to of match result")
-st.subheader("Pick a game week to see matches, team weights, and actuals")
+st.text("All previous matches for model training are from the Premier League between 11/9/2024 and 8/25/2025.")
+
+st.subheader("Select the Home and Away teams, along with their team weights to boost the probability. Click submit and scroll down to see the likelihood and pick of the match result")
+st.text("Note: Team weights should range beteen 0 and 2. They are set by you based on your knowledge of activities since 8/25/2025 on the team. Examples might be, a change in strategy with recent success could get a weight of 2. However, injuries, transfers, player suspensions could get 0.5")
 
 
 left, right = st.columns([1,3], vertical_alignment="top")
+
+left.subheader("Select the home and way teams of the match.")
 team1_name = left.selectbox(
     "Home Team Name:",
     ("Arsenal", "Aston Villa", 
@@ -159,25 +163,43 @@ game_week4_weighted_list = [[1,"Arsenal", "Nott'm Forest", 2, 1],
 game_week4_weighted = pd.DataFrame(game_week4_weighted_list, columns=["match ID","Home", "Away", "Home Weight", "Away Weight"])
 
 # Create a dictionary to map string names to actual DataFrames
+# match_week_mapping = {
+#     "game_week1_baseline": game_week1_baseline,
+#     "game_week2_baseline_list": game_week2_baseline,
+#     "game_week2_weighted_list": game_week2_weighted,
+#     "game_week3_baseline_list": game_week3_baseline,
+#     "game_week3_weighted_list": game_week3_weighted,
+#     "game_week4_baseline_list": game_week4_baseline,
+#     "game_week4_weighted_list": game_week4_weighted
+# }
+
 match_week_mapping = {
-    "game_week1_baseline": game_week1_baseline,
-    "game_week2_baseline_list": game_week2_baseline,
-    "game_week2_weighted_list": game_week2_weighted,
-    "game_week3_baseline_list": game_week3_baseline,
-    "game_week3_weighted_list": game_week3_weighted,
-    "game_week4_baseline_list": game_week4_baseline,
-    "game_week4_weighted_list": game_week4_weighted
+    "game_week1": game_week1_baseline,
+    "game_week2": game_week2_weighted,
+    "game_week3": game_week3_weighted,
+    "game_week4": game_week4_weighted
 }
 
+
+# gw_num_match_lineup = right.selectbox(
+#     "Game week matches and my suggested weights:",
+#     ("game_week1_baseline",
+#      "game_week2_baseline_list",
+#      "game_week2_weighted_list",
+#      "game_week3_baseline_list",
+#      "game_week3_weighted_list",
+#      "game_week4_baseline_list",
+#      "game_week4_weighted_list"
+#      ),  key="gw_num_match_lineup")
+
+right.subheader("All game week matches and my suggested team weights.")
+
 gw_num_match_lineup = right.selectbox(
-    "Game Week:",
-    ("game_week1_baseline",
-     "game_week2_baseline_list",
-     "game_week2_weighted_list",
-     "game_week3_baseline_list",
-     "game_week3_weighted_list",
-     "game_week4_baseline_list",
-     "game_week4_weighted_list"
+    "Pick a game week (note: match id for reference with actual results):",
+    ("game_week1",
+     "game_week2",
+     "game_week3",
+     "game_week4"
      ),  key="gw_num_match_lineup")
 
 # Get the selected DataFrame and display it
@@ -187,61 +209,68 @@ if selected_dataframe is not None:
 else:
     right.write(f"DataFrame for {gw_num_match_lineup} not yet implemented")
 
-gw_1_actuals_list = [[1,"Home Win"],
-                [2,"Tie"],
-                [3,"Tie"],
-                [4,"Home Win"],
-                [5,"Home Win"],
-                [6,"Away Win"],
-                [7,"Home Win"],
-                [8,"Tie"],
-                [9,"Away Win"],
-                [10,"Home Win"]]
-gw_1_actuals = pd.DataFrame(gw_1_actuals_list, columns=["match ID","Result"])
+gw_1_actuals_list = [[1,"Home Win","Home Win"],
+                [2,"Tie", "Home Win"],
+                [3,"Tie", "Home Win"],
+                [4,"Home Win", "Home Win"],
+                [5,"Home Win", "Home Win"],
+                [6,"Away Win", "Away Win"],
+                [7,"Home Win", "Away Win"],
+                [8,"Tie", "Home Win"],
+                [9,"Away Win", "Away Win"],
+                [10,"Home Win", "Away Win"]]
+gw_1_actuals = pd.DataFrame(gw_1_actuals_list, columns=["match ID","Result","Predicted"])
 
-gw_2_actuals_list = [[1,"Away Win"],
-                [2,"Away Win"],
-                [3,"Home Win"],
-                [4,"Home Win"],
-                [5,"Home Win"],
-                [6,"Home Win"],
-                [7,"Tie"],
-                [8,"Home Win"],
-                [9,"Tie"],
-                [10,"Away Win"]]
-gw_2_actuals = pd.DataFrame(gw_2_actuals_list, columns=["match ID","Result"])
+gw_2_actuals_list = [[1,"Away Win", "Away Win"],
+                [2,"Away Win", "Home Win"],
+                [3,"Home Win", "Home Win"],
+                [4,"Home Win", "Home Win", ],
+                [5,"Home Win", "Away Win"],
+                [6,"Home Win", "Home Win"],
+                [7,"Tie", "Home Win"],
+                [8,"Home Win", "Home Win"],
+                [9,"Tie", "Home Win"],
+                [10,"Away Win", "Away Win"]]
+gw_2_actuals = pd.DataFrame(gw_2_actuals_list, columns=["match ID","Result", "Predicted"])
 
-gw_3_actuals_list = [[1,"Home Win"],
-                [2,"Home Win"],
-                [3,"Home Win"],
-                [4,"Away Win"],
-                [5,"Away Win"],
-                [6,"Tie"],
-                [7,"Home Win"],
-                [8,"Away Win"],
-                [9,"Home Win"],
-                [10,"Away Win"]]
-gw_3_actuals = pd.DataFrame(gw_3_actuals_list, columns=["match ID","Result"])
+gw_3_actuals_list = [[1,"Home Win", "Home Win"],
+                [2,"Home Win", "Away Win"],
+                [3,"Home Win", "Home Win"],
+                [4,"Away Win", "Away Win"],
+                [5,"Away Win", "Away Win"],
+                [6,"Tie", "Tie"],
+                [7,"Home Win", "Home Win"],
+                [8,"Away Win", "Away Win"],
+                [9,"Home Win", "Home Win"],
+                [10,"Away Win", "Home Win"]]
+gw_3_actuals = pd.DataFrame(gw_3_actuals_list, columns=["match ID","Result","Predicted"])
 
 actuals_week_mapping = {
-    "gw_1_actuals": gw_1_actuals,
-    "gw_2_actuals": gw_2_actuals,
-    "gw_3_actuals": gw_3_actuals,
+    "game_week1": gw_1_actuals,
+    "game_week2": gw_2_actuals,
+    "game_week3": gw_3_actuals,
 }
 
+right.subheader("Actual results from that game week. Predicted based on weights suggested in matches.")
+
 gw_num_actuls = right.selectbox(
-    "Game Week:",
-    ("gw_1_actuals",
-     "gw_2_actuals",
-     "gw_3_actuals",
+    "Pick a game week (actual results listed by match id from the table above):",
+    ("game_week1",
+     "game_week2",
+     "game_week3"
      ),  key="gw_num_actuls")
 
 # Get the selected DataFrame and display it
 selected_dataframe = actuals_week_mapping.get(gw_num_actuls)
 if selected_dataframe is not None:
     right.dataframe(selected_dataframe)
+    num_right =len(selected_dataframe.loc[(selected_dataframe["Predicted"] == selected_dataframe["Result"])])
+    total = len(selected_dataframe)
+    accuracy = num_right/total
+    right.text(f"Predicted correct accuracy: {accuracy:.0%}")
 else:
     right.write(f"DataFrame for {gw_num_match_lineup} not yet implemented")
+    right.text("Predicted correct accuracy: NONE")
 
 # submit inputs to model
 
