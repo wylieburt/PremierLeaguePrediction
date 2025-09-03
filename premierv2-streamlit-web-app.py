@@ -17,7 +17,7 @@ tab1, tab2 = st.tabs(["Make Prediction", "About"])
 # Images to spruce things up
 
 with tab1:
-    st.image("images/crystal_palace_stadium.jpg")
+    st.image("crystal_palace_stadium.jpg")
 
     # Add title and instructions
     st.title("Premier League Match Prediction")
@@ -362,6 +362,6 @@ with tab1:
         left.subheader(f"Pick: {pick}")
         
 with tab2:
-    st.image("images/crystal_palace_stadium.jpg")
+    st.image("crystal_palace_stadium.jpg")
 
     st.text("Describe the project")
