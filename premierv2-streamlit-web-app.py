@@ -13,8 +13,8 @@ data_for_avg = pickle.load(open("data_for_avg.p", "rb"))
 
 # Add title and instructions
 st.title("Premier League Match Prediction")
-st.text("By Wylie")
-
+st.text("Data Science and Machine Learning by Wylie")
+st.text("Data provided by FBref.com")
 st.subheader("Select the Home and Away teams, along with their team weights to boost the probability. Click submit and scroll down likelihood to of match result")
 st.subheader("Pick a game week to see matches, team weights, and actuals")
 
@@ -30,8 +30,8 @@ team1_name = left.selectbox(
      "Leeds","Liverpool",
      "Manchester City", "Manchester Utd",
      "Newcastle", "Nott'm Forest", 
-     "Spurs", 
-     "Wolves"
+     "Spurs", "Sunderland", 
+     "West Ham", "Wolves"
      ), width=150, key="team1_name"
 )
 
@@ -54,8 +54,8 @@ team2_name = left.selectbox(
      "Leeds","Liverpool",
      "Manchester City", "Manchester Utd",
      "Newcastle", "Nott'm Forest", 
-     "Spurs", 
-     "Wolves"
+     "Spurs", "Sunderland", 
+     "West Ham", "Wolves"
      ), width=150, key="team2_name"
 )
 
@@ -226,7 +226,7 @@ gw_3_actuals = pd.DataFrame(gw_3_actuals_list, columns=["match ID","Result"])
 actuals_week_mapping = {
     "gw_1_actuals": gw_1_actuals,
     "gw_2_actuals": gw_2_actuals,
-    "gw_3_actuals": gw_1_actuals,
+    "gw_3_actuals": gw_3_actuals,
 }
 
 gw_num_actuls = right.selectbox(
@@ -310,4 +310,3 @@ if left.button("Submit for Prediction"):
     left.subheader(f"Away Win: {away_win}") 
     left.subheader(f"Pick: {pick}")
 
-    
