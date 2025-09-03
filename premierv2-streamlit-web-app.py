@@ -4,8 +4,6 @@ import streamlit as st
 import pandas as pd
 import pickle
 
-import numpy as np
-
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
@@ -18,8 +16,11 @@ st.title("Premier League Match Prediction")
 st.text("By Wylie")
 
 st.subheader("Select the Home and Away teams, along with their team weights to boost the probability. Click submit and scroll down likelihood to of match result")
+st.subheader("Pick a game week to see matches, team weights, and actuals")
 
-team1_name = st.selectbox(
+
+left, right = st.columns([1,3], vertical_alignment="top")
+team1_name = left.selectbox(
     "Home Team Name:",
     ("Arsenal", "Aston Villa", 
      "Bournemouth", "Brentford","Burnley", "Brighton",
@@ -31,17 +32,19 @@ team1_name = st.selectbox(
      "Newcastle", "Nott'm Forest", 
      "Spurs", 
      "Wolves"
-     ), key="team1_name"
+     ), width=150, key="team1_name"
 )
 
-team1_weight = st.number_input(
+team1_weight = left.number_input(
     label = "Home team weight",
     min_value = 0.0,
     max_value = 2.0,
     value = 1.0,
-    key = "team1_weight")
+    width=150, key = "team1_weight")
 
-team2_name = st.selectbox(
+
+
+team2_name = left.selectbox(
     "Away Team Name:",
     ("Arsenal", "Aston Villa", 
      "Bournemouth", "Brentford","Burnley", "Brighton",
@@ -53,20 +56,197 @@ team2_name = st.selectbox(
      "Newcastle", "Nott'm Forest", 
      "Spurs", 
      "Wolves"
-     ),  key="team2_name"
+     ), width=150, key="team2_name"
 )
 
-team2_weight = st.number_input(
+
+
+team2_weight = left.number_input(
     label = "Away team weight",
     min_value = 0.0,
     max_value = 2.0,
     value = 1.0,
-    key = "team2_weight")
+    width=150, key = "team2_weight")
+
+
+
+# GW1 no weights, rely on historic data entirely.  Unsure how summer transfers will work out
+game_week1_baseline_list = [[1,"Liverpool", "Bournemouth", 1, 1],
+                  [2,"Aston Villa", "Newcastle", 1, 1],
+                  [3,"Brighton", "Fulham", 1, 1],
+                  [4,"Sunderland", "West Ham", 1, 1],
+                  [5,"Spurs", "Burnley", 1, 1],
+                  [6,"Wolves", "Man City", 1, 1],
+                  [7,"Nott'm Forest", "Brentford", 1, 1], 
+                  [8,"Chelsea", "Crystal Palace", 1, 1],
+                  [9,"Man Utd", "Arsenal", 1, 1],
+                  [10,"Leeds", "Everton", 1, 1]]
+game_week1_baseline = pd.DataFrame(game_week1_baseline_list, columns=["match ID","Home", "Away", "Home Weight", "Away Weight"])
+
+# GW2 Add weights now that we have seen everyone play once and better understand transfers
+game_week2_baseline_list = [[1,"West Ham", "Chelsea", 1, 1],
+                  [2,"Man City", "Spurs", 1, 1],
+                  [3,"Bournemouth", "Wolves", 1, 1],
+                  [4,"Brentford", "Aston Villa", 1, 1],
+                  [5,"Burnley", "Sunderland", 1, 1],
+                  [6,"Arsenal", "Leeds", 1, 1],
+                  [7,"Crystal Palace", "Nott'm Forest", 1, 1], 
+                  [8,"Everton", "Brighton", 1, 1],
+                  [9,"Fulham", "Man Utd", 1, 1],
+                  [10,"Newcastle", "Liverpool", 1, 1]]
+game_week2_baseline = pd.DataFrame(game_week2_baseline_list, columns=["match ID","Home", "Away", "Home Weight", "Away Weight"])
+
+game_week2_weighted_list = [[1,"West Ham", "Chelsea", 1, 1],
+                  [2,"Man City", "Spurs", 1, 1],
+                  [3,"Bournemouth", "Wolves", 1, 1],
+                  [4,"Brentford", "Aston Villa", 1, 1],
+                  [5,"Burnley", "Sunderland", 1, 1],
+                  [6,"Arsenal", "Leeds", 2, 1],
+                  [7,"Crystal Palace", "Nott'm Forest", 1, 1], 
+                  [8,"Everton", "Brighton", 2, 1],
+                  [9,"Fulham", "Man Utd", 2, 1],
+                  [10,"Newcastle", "Liverpool", 1, 1]]
+game_week2_weighted = pd.DataFrame(game_week2_weighted_list, columns=["match ID","Home", "Away", "Home Weight", "Away Weight"])
+
+# GW3 Continue with weights plus observer underestimates in better teams from last season
+game_week3_baseline_list = [[1,"Chelsea", "Fulham", 1, 1],
+                  [2,"Man Utd", "Burnley", 1, 1],
+                  [3,"Sunderland", "Brentford", 1, 1],
+                  [4,"Spurs", "Bournemouth",1, 1],
+                  [5,"Wolves", "Everton",1 , 1],
+                  [6,"Leeds", "Newcastle" ,1, 1],
+                  [7,"Brighton", "Man City", 1, 1], 
+                  [8,"Nott'm Forest", "West Ham", 1, 1],
+                  [9,"Liverpool", "Arsenal", 1, 1],
+                  [10,"Aston Villa", "Crystal Palace", 1, 1]]
+game_week3_baseline = pd.DataFrame(game_week3_baseline_list, columns=["match ID","Home", "Away", "Home Weight", "Away Weight"])
+
+game_week3_weighted_list = [[1,"Chelsea", "Fulham", 1, 1],
+                  [2, "Man Utd", "Burnley", 1, 1],
+                  [3, "Sunderland", "Brentford", 1, 1],
+                  [4, "Spurs", "Bournemouth",1, 1],
+                  [5, "Wolves", "Everton",1 , 1],
+                  [6, "Leeds", "Newcastle",1, 1],
+                  [7, "Brighton", "Man City", 1, 1], 
+                  [8, "Nott'm Forest", "West Ham", 1, 2],
+                  [9, "Liverpool", "Arsenal", 1, 1],
+                  [10,"Aston Villa", "Crystal Palace", 1, 1]]
+game_week3_weighted = pd.DataFrame(game_week3_weighted_list, columns=["match ID","Home", "Away", "Home Weight", "Away Weight"])
+
+# GW4 Continue with weights plus one more based on last 3 GW performance
+game_week4_baseline_list = [[1,"Arsenal", "Nott'm Forest", 1, 1],
+                  [2,"Bournemouth", "Brighton", 1, 1],
+                  [3,"Crystal Palace", "Sunderland", 1, 1],
+                  [4,"Everton", "Aston Villa",1, 1],
+                  [5,"Fulham", "Leeds",1 , 1],
+                  [6,"Newcastle", "Wolves" ,1, 1],
+                  [7,"West Ham", "Spurs", 1, 1], 
+                  [8,"Brentford", "Chelsea", 1, 1],
+                  [9,"Burnley", "Liverpool", 1, 1],
+                  [10,"Man City", "Man Utd", 1, 1]]
+game_week4_baseline = pd.DataFrame(game_week4_baseline_list, columns=["match ID","Home", "Away", "Home Weight", "Away Weight"])
+
+game_week4_weighted_list = [[1,"Arsenal", "Nott'm Forest", 2, 1],
+                  [2,"Bournemouth", "Brighton", 2, 1],
+                  [3,"Crystal Palace", "Sunderland", 1, 1],
+                  [4,"Everton", "Aston Villa",2, 1],
+                  [5,"Fulham", "Leeds",1 , 1],
+                  [6,"Newcastle", "Wolves" ,2, 1],
+                  [7,"West Ham", "Spurs", 2, 1], 
+                  [8,"Brentford", "Chelsea", 1, 1],
+                  [9,"Burnley", "Liverpool", 1, 1],
+                  [10,"Man City", "Man Utd", 1, 1]]
+game_week4_weighted = pd.DataFrame(game_week4_weighted_list, columns=["match ID","Home", "Away", "Home Weight", "Away Weight"])
+
+# Create a dictionary to map string names to actual DataFrames
+match_week_mapping = {
+    "game_week1_baseline": game_week1_baseline,
+    "game_week2_baseline_list": game_week2_baseline,
+    "game_week2_weighted_list": game_week2_weighted,
+    "game_week3_baseline_list": game_week3_baseline,
+    "game_week3_weighted_list": game_week3_weighted,
+    "game_week4_baseline_list": game_week4_baseline,
+    "game_week4_weighted_list": game_week4_weighted
+}
+
+gw_num_match_lineup = right.selectbox(
+    "Game Week:",
+    ("game_week1_baseline",
+     "game_week2_baseline_list",
+     "game_week2_weighted_list",
+     "game_week3_baseline_list",
+     "game_week3_weighted_list",
+     "game_week4_baseline_list",
+     "game_week4_weighted_list"
+     ),  key="gw_num_match_lineup")
+
+# Get the selected DataFrame and display it
+selected_dataframe = match_week_mapping.get(gw_num_match_lineup)
+if selected_dataframe is not None:
+    right.dataframe(selected_dataframe)
+else:
+    right.write(f"DataFrame for {gw_num_match_lineup} not yet implemented")
+
+gw_1_actuals_list = [[1,"Home Win"],
+                [2,"Tie"],
+                [3,"Tie"],
+                [4,"Home Win"],
+                [5,"Home Win"],
+                [6,"Away Win"],
+                [7,"Home Win"],
+                [8,"Tie"],
+                [9,"Away Win"],
+                [10,"Home Win"]]
+gw_1_actuals = pd.DataFrame(gw_1_actuals_list, columns=["match ID","Result"])
+
+gw_2_actuals_list = [[1,"Away Win"],
+                [2,"Away Win"],
+                [3,"Home Win"],
+                [4,"Home Win"],
+                [5,"Home Win"],
+                [6,"Home Win"],
+                [7,"Tie"],
+                [8,"Home Win"],
+                [9,"Tie"],
+                [10,"Away Win"]]
+gw_2_actuals = pd.DataFrame(gw_2_actuals_list, columns=["match ID","Result"])
+
+gw_3_actuals_list = [[1,"Home Win"],
+                [2,"Home Win"],
+                [3,"Home Win"],
+                [4,"Away Win"],
+                [5,"Away Win"],
+                [6,"Tie"],
+                [7,"Home Win"],
+                [8,"Away Win"],
+                [9,"Home Win"],
+                [10,"Away Win"]]
+gw_3_actuals = pd.DataFrame(gw_3_actuals_list, columns=["match ID","Result"])
+
+actuals_week_mapping = {
+    "gw_1_actuals": gw_1_actuals,
+    "gw_2_actuals": gw_2_actuals,
+    "gw_3_actuals": gw_1_actuals,
+}
+
+gw_num_actuls = right.selectbox(
+    "Game Week:",
+    ("gw_1_actuals",
+     "gw_2_actuals",
+     "gw_3_actuals",
+     ),  key="gw_num_actuls")
+
+# Get the selected DataFrame and display it
+selected_dataframe = actuals_week_mapping.get(gw_num_actuls)
+if selected_dataframe is not None:
+    right.dataframe(selected_dataframe)
+else:
+    right.write(f"DataFrame for {gw_num_match_lineup} not yet implemented")
 
 # submit inputs to model
 
 
-if st.button("Submit for Prediction"):
+if left.button("Submit for Prediction"):
     
     # store the input data into a dataframe for prediction
  
@@ -124,10 +304,10 @@ if st.button("Submit for Prediction"):
 
     #output prediction
     
-    st.subheader("Our Prediction")
-    st.subheader(f"Home Win: {home_win}")
-    st.subheader(f"Tie: {tie}")
-    st.subheader(f"Away Win: {away_win}") 
-    st.subheader(f"Pick: {pick}")
+    left.subheader("Our Prediction")
+    left.subheader(f"Home Win: {home_win}")
+    left.subheader(f"Tie: {tie}")
+    left.subheader(f"Away Win: {away_win}") 
+    left.subheader(f"Pick: {pick}")
 
     
