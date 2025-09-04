@@ -7,23 +7,11 @@ tags: []
 
 I have always been a soccer/football fan.  Most recently I have become a Premier League addict! Being that I alway love to dive into data, I started looking for data and landed at fbref.com.  I could build customer searches against decades of data.  Getting that data locally in a file I could use with my code was tideous, but I got it done.  As I started to explore the data I realized this would be perfect for a classification algorithm.  What I wanted to do is use an algorithm to predict the outcome of a future match. Let's use ML to solve this!
 
-# Table of contents
-
-- [00. Project Overview](#overview-main)
-    - [Context](#overview-context)
-    - [Actions](#overview-actions)
-    - [Results](#overview-results)
-    - [Growth/Next Steps](#overview-growth)
-- [01. Random Forest](#rf-title)
-- [02. Modelling Summary](#modelling-summary)
-- [03. Predicting Match Results](#modelling-predictions)
-- [04. Growth & Next Steps](#growth-next-steps)
-
 ___
 
-# Project Overview  <a name="overview-main"></a>
+# Project Overview
 
-### Context <a name="overview-context"></a>
+### Context
 
 Okay, so honestly my son and I started making guesses on the results at a game.  Some of our own predictions were based on solid news, but mine was mostly a gut feeling and which team was higher on the table.  I wanted a better way to predict the results.
 
@@ -32,7 +20,7 @@ The overall aim of this work is to accurately predict the *result* (Win, Lose, o
 To achieve this, I looked to build out a predictive model that will find relationships between 50+ statistical features and the actual *result*.  From that learning the algorithm would make probabilities of outcomes.
 <br>
 <br>
-### Actions <a name="overview-actions"></a>
+### Actions
 
 Since I had already compiled the dataset to start with my first action was to determine what model would be best.  This meant several separate programs that implemented different types of models and collecting accuracy values of the trained models.  This would direct me to a good model to use.
 
@@ -57,7 +45,7 @@ Next I will follow the standard steps of building, training, testing, and deploy
 <br>
 ___
 
-# Data Overview  <a name="data-overview"></a>
+# Data Overview
 
 Admittedly, I started with too many variables (50+) which made understanding feature importance or even creating some basic plots challenging.  That gets sorted out when I tackle feature engineering and selection.
 
@@ -107,7 +95,7 @@ data_for_model.drop(['Unnamed: 10',
 As you can see I dropped some variables that seem useful.  However, later on in these steps I discovered there was massive data leakage.  By that, I mean variables that directly related to the target variable.  Specifically, Goal Differential (GD) and I needed to pick either Goals Against (GA) or Goals For (GF).  Also, Team and Opponent names were not required for classification training.
 
 <br>
-# Random Forest <a name="rf-title"></a>
+# Random Forest
 
 We will again utlise the scikit-learn library within Python to model our data using a Random Forest. The code sections below are broken up into 3 key sections:
 
@@ -115,7 +103,7 @@ We will again utlise the scikit-learn library within Python to model our data us
 * Model Training
 * Performance Assessment
 
-### Data Preprocessing <a name="rf-preprocessing"></a>
+### Data Preprocessing
 
 Random Forests, just like Decision Trees, are not susceptible to the effects of outliers, and highly correlated input variables, so the required preprocessing here is lighter. Fortunately, the data came with no missing values, and for Random Forest feature scaling would not be necessary. The focus was to get the model trained on the starting datatset and process for feature selection based on the importance of features in the model.
 
@@ -190,7 +178,7 @@ clf.fit(X_train, y_train)
 <br>
 
 
-### Model Performance Assessment <a name="rf-model-assessment"></a>
+### Model Performance Assessment
 
 These predictions are on the model trained with the full dataset with now feature selection done yet.  That is coming up soon.
 
@@ -270,7 +258,7 @@ I did the process above again and finally came up with a model I was happy with.
 
 ___
 <br>
-# Growth & Next Steps <a name="growth-next-steps"></a>
+# Growth & Next Steps
 
 From a data point of view, trying a completely different set of variables not present in any of the processing above could prove to better accuracy.
 
