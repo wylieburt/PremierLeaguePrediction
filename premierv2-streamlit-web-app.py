@@ -321,10 +321,14 @@ with tab1:
     # Right column
     #############
     
-    # Import table CSV files
-    table_1_game_df = pd.read_csv("table_1_game.csv")
-    table_2_game_df = pd.read_csv("table_2_game.csv")
-    table_3_game_df = pd.read_csv("table_3_game.csv")    
+    # Import table CSV file with all tables in it
+    table_all_df = pd.read_csv("tables_all.csv")
+    
+    # create a dataframe for each game week from table_all_df and selecting  on gw_num 
+    table_1_game_df = table_all_df[table_all_df["gw_num"] == 1]
+    table_2_game_df = table_all_df[table_all_df["gw_num"] == 2]
+    table_3_game_df = table_all_df[table_all_df["gw_num"] == 3] 
+    
     # Mapping for selecte gameweek to correct table dataframe
     table_mapping = {
         "post game week 1": table_1_game_df,
@@ -392,13 +396,14 @@ with tab1:
 
 # Convert scrapped table content from Premierleague.com        
 with tab2:    
-    # Import game week table CSV files
-    table_1_game_df = pd.read_csv("table_1_game.csv")
-    table_1_game_df.drop(["Unnamed: 0"], axis=1, inplace=True)
+    # Import table CSV file with all tables in it
+    table_all_df = pd.read_csv("tables_all.csv")
     
-    table_2_game_df = pd.read_csv("table_2_game.csv")
-
-    table_3_game_df = pd.read_csv("table_3_game.csv")
+    # create a dataframe for each game week from table_all_df and selecting  on gw_num 
+    table_1_game_df = table_all_df[table_all_df["gw_num"] == 1]
+    table_2_game_df = table_all_df[table_all_df["gw_num"] == 2]
+    table_3_game_df = table_all_df[table_all_df["gw_num"] == 3] 
+    
     
     # Mapping of selected text to proper dataframe
     table_mapping = {
