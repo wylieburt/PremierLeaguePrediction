@@ -240,7 +240,6 @@ In order to understand the *importance*, we *randomise* the values within one of
 
 *Permutation Importance* is often preferred over *Feature Importance* which can at times inflate the importance of numerical features. Both are useful, and in most cases will give fairly similar results.
 
-<br>
 ```python
 
 # calculate permutation importance
@@ -260,13 +259,11 @@ plt.tight_layout()
 plt.show()
 
 ```
-<br>
+
 That code gives a *Permutation Importance* plot!
 
-<br>
 ![alt text](permutation_summary_chart.png "Random Forest Permutation Importance Plot")
 
-<br>
 The overall story the chart tells is that very few of the variables I was using were most important or impactful input.  I was relieved because fewer variables is just easier all around.
 
 I did the process above again and finally came up with a model I was happy with.
