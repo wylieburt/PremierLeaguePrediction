@@ -17,7 +17,7 @@ tab1, tab2 = st.tabs(["Make Prediction", "About"])
 # Images to spruce things up
 
 with tab1:
-    st.image("crystal_palace_stadium.jpg")
+    st.image("images/crystal_palace_stadium.jpg")
 
     # Add title and instructions
     st.title("Premier League Match Prediction")
@@ -362,6 +362,19 @@ with tab1:
         left.subheader(f"Pick: {pick}")
         
 with tab2:
-    st.image("crystal_palace_stadium.jpg")
+    st.image("images/crystal_palace_stadium.jpg")
 
-    st.text("Describe the project")
+    # Read and display markdown file
+    with open("prediction_web.md", "r") as file:
+        markdown_content = file.read()
+    st.markdown(markdown_content)
+    
+    st.image("confusion_matrix_first_round.png", caption="Random Forest Confusion Matrix - first run")
+    st.image("confusion_matrix_second_round.png", caption="Random Forest Confusion Matrix - fixed data leakage")
+    st.image("permutation_summary_chart.png", caption="Feature importance")
+    
+    
+    
+    
+    
+    
