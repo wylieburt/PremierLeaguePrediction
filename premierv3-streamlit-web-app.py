@@ -220,403 +220,468 @@ with tab1:
     st.subheader("Select the Home and Away teams, along with their team weights to boost the probability. Click submit and scroll down to see the likelihood and pick of the match result")
     st.text("Note: Team weights should range beteen 0 and 2.")
     
-    # Establish columns on tab to arrange content
-    left, middle, right = st.columns([1,3,2], vertical_alignment="top")
+    with st.form("predict_form"):
+        col1, col2, col3 = st.columns([1,1,1], vertical_alignment="bottom")
+        
+        with col1:
+            team1_name = st.selectbox(
+                "Home Team Name:",
+                ("Arsenal", "Aston Villa", 
+                 "Bournemouth", "Brentford","Burnley", "Brighton",
+                 "Chelsea", "Crystal Palace",
+                 "Everton",
+                 "Fulham",
+                 "Leeds United","Liverpool",
+                 "Manchester City", "Manchester Utd",
+                 "Newcastle Utd", "Nott'ham Forest", 
+                 "Sunderland", "Tottenham", 
+                 "West Ham", "Wolves"
+                 ), width=150, key="form_team1_name"
+            )
+            
+            team1_weight = st.number_input(
+                label = "Home team weight",
+                min_value = 0.00,
+                max_value = 2.00,
+                value = 1.00,
+                width=150, key = "form_team1_weight")
+            
+        with col3:
+            team2_name = st.selectbox(
+                "Away Team Name:",
+                ("Arsenal", "Aston Villa", 
+                 "Bournemouth", "Brentford","Burnley", "Brighton",
+                 "Chelsea", "Crystal Palace",
+                 "Everton",
+                 "Fulham",
+                 "Leeds United","Liverpool",
+                 "Manchester City", "Manchester Utd",
+                 "Newcastle Utd", "Nott'ham Forest", 
+                 "Sunderland", "Tottenham", 
+                 "West Ham", "Wolves"
+                 ), width=150, key="form_team2_name"
+            )
+               
+            team2_weight = st.number_input(
+                label = "Away team weight",
+                min_value = 0.00,
+                max_value = 2.00,
+                value = 1.00,
+                width=150, key = "form_team2_weight")
+            
     
-    #############
-    # Left column
-    #############
-    
-    # Prediction input data
-    left.subheader("Make a forecast")
-    team1_name = left.selectbox(
-        "Home Team Name:",
-        ("Arsenal", "Aston Villa", 
-         "Bournemouth", "Brentford","Burnley", "Brighton",
-         "Chelsea", "Crystal Palace",
-         "Everton",
-         "Fulham",
-         "Leeds United","Liverpool",
-         "Manchester City", "Manchester Utd",
-         "Newcastle Utd", "Nott'ham Forest", 
-         "Sunderland", "Tottenham", 
-         "West Ham", "Wolves"
-         ), width=150, key="team1_name"
-    )
-    
-    team1_weight = left.number_input(
-        label = "Home team weight",
-        min_value = 0.00,
-        max_value = 2.00,
-        value = 1.00,
-        width=150, key = "team1_weight")
-    
-    team2_name = left.selectbox(
-        "Away Team Name:",
-        ("Arsenal", "Aston Villa", 
-         "Bournemouth", "Brentford","Burnley", "Brighton",
-         "Chelsea", "Crystal Palace",
-         "Everton",
-         "Fulham",
-         "Leeds United","Liverpool",
-         "Manchester City", "Manchester Utd",
-         "Newcastle Utd", "Nott'ham Forest", 
-         "Sunderland", "Tottenham", 
-         "West Ham", "Wolves"
-         ), width=150, key="team2_name"
-    )
-       
-    team2_weight = left.number_input(
-        label = "Away team weight",
-        min_value = 0.00,
-        max_value = 2.00,
-        value = 1.00,
-        width=150, key = "team2_weight")
+        # Every form must have a submit button.
+        submitted = st.form_submit_button("Predict")
+        if submitted:
+            
+            # Remove results feature, not needed for creating averages
+            data_for_avg.drop(['Result'], axis=1, inplace = True)
+            
+            # First collect all data for each team in to separate dataframes.
+            tmp_team1 = data_for_avg[data_for_avg['Team'] == team1_name].copy()
+            tmp_team1.drop(['Team'], axis=1, inplace = True)
+        
+            tmp_team2 = data_for_avg[data_for_avg['Team'] == team2_name].copy()
+            tmp_team2.drop(['Team'], axis=1, inplace = True)
+            len(tmp_team1)
+            len(tmp_team2)
+            
+            #print(abs(len(tmp_team1) - len(tmp_team2))
 
-    # Process prediction button
-       
-    if left.button("Process", icon=":material/online_prediction:"):
-        
-        # For analysis only.
-        # team1_name="Arsenal"
-        # team2_name="Leeds United"
-        # teams = data_for_avg['Team']
-        
-        # Remove results feature, not needed for creating averages
-        data_for_avg.drop(['Result'], axis=1, inplace = True)
-        
-        # First collect all data for each team in to separate dataframes.
-        tmp_team1 = data_for_avg[data_for_avg['Team'] == team1_name].copy()
-        tmp_team1.drop(['Team'], axis=1, inplace = True)
-    
-        tmp_team2 = data_for_avg[data_for_avg['Team'] == team2_name].copy()
-        tmp_team2.drop(['Team'], axis=1, inplace = True)
-        len(tmp_team1)
-        len(tmp_team2)
-        
-        #print(abs(len(tmp_team1) - len(tmp_team2))
+            # if one team has played less matches than the other apply a Baysian Shrinkage
+            # to make sure the averages for that team are reliable.  This is more pronounced
+            # for the teams that are newer to the premier league.
+            
+            if (abs(len(tmp_team1) - len(tmp_team2)) > 0):
+                bay_application = 'Applying Bayesien Shrinkage due to the imbalance of the number in matches of each team in historic data'
+                
+                # Convert DataFrames to list of lists format expected by Bayesian analyzer
+                team1_data_list = tmp_team1.values.tolist()  # Convert DataFrame to list of lists
+                team2_data_list = tmp_team2.values.tolist()  # Convert DataFrame to list of lists
+                
+                # Initialize analyzer
+                analyzer = BayesianTeamAnalyzer()
+                
+                # Run Bayesian comparison
+                results = analyzer.compare_teams_bayesian(team1_data_list, team2_data_list)
+                results_df = pd.DataFrame(results)
+                
+                summary_df, tmp_team1_mean, tmp_team2_mean = analyzer.summary_table()
 
-        # if one team has played less matches than the other apply a Baysian Shrinkage
-        # to make sure the averages for that team are reliable.  This is more pronounced
-        # for the teams that are newer to the premier league.
-        
-        if (abs(len(tmp_team1) - len(tmp_team2)) > 0):
-            bay_application = 'Applying Bayesien Shrinkage due to the imbalance of the number in matches of each team in historic data'
+            else:
+                bay_application = 'Simple mean of historic data for each team'
             
-            # Convert DataFrames to list of lists format expected by Bayesian analyzer
-            team1_data_list = tmp_team1.values.tolist()  # Convert DataFrame to list of lists
-            team2_data_list = tmp_team2.values.tolist()  # Convert DataFrame to list of lists
+                # Average numerical data in each datafram and put into a new dataframe.    
+                averaged_data = tmp_team1.mean().to_frame().T
+                tmp_team1_mean = averaged_data.reset_index(drop=True)
             
-            # Initialize analyzer
-            analyzer = BayesianTeamAnalyzer()
+                averaged_data = tmp_team2.mean().to_frame().T
+                tmp_team2_mean = averaged_data.reset_index(drop=True)
+        
+            # Combine average data dataframes and reset the index
+            combined_avg = pd.concat([tmp_team1_mean, tmp_team2_mean], axis=0).reset_index(drop=True)
+           
+            # Ensure the order of features matches the training data
+            #combined_avg =combined_avg[tmp_team1.columns]
             
-            # Run Bayesian comparison
-            results = analyzer.compare_teams_bayesian(team1_data_list, team2_data_list)
-            results_df = pd.DataFrame(results)
+            # Random Forest prediction
+            predict_proba = clf_reduced.predict_proba(combined_avg)
             
-            summary_df, tmp_team1_mean, tmp_team2_mean = analyzer.summary_table()
-
-        else:
-            bay_application = 'Simple mean of historic data for each team'
-        
-            # Average numerical data in each datafram and put into a new dataframe.    
-            averaged_data = tmp_team1.mean().to_frame().T
-            tmp_team1_mean = averaged_data.reset_index(drop=True)
-        
-            averaged_data = tmp_team2.mean().to_frame().T
-            tmp_team2_mean = averaged_data.reset_index(drop=True)
-    
-        # Combine average data dataframes and reset the index
-        combined_avg = pd.concat([tmp_team1_mean, tmp_team2_mean], axis=0).reset_index(drop=True)
-    
-        # Ensure the order of features matches the training data
-        #combined_avg =combined_avg[tmp_team1.columns]
-        
-        # Random Forest prediction
-        predict_proba = clf_reduced.predict_proba(combined_avg)
-        
-        # Extract probabilities
-        home_lose, home_tie, home_win = predict_proba[0]
-        away_lose, away_tie, away_win = predict_proba[1]
-        
-        # When Win probabilitie are extremely close, fovor the team with the most wins against the other team historically.
-        if (((away_win - home_win) ** 2) * 100) < 0.041:
-            favoring = 'Applied do to the closeness of both win probabilites'
-            tmp_match_results = match_result_lookup.loc[(match_result_lookup["Team"].isin([team1_name, team2_name])) & (match_result_lookup["Opp"].isin([team1_name, team2_name]))].reset_index()        
-            result_summary = tmp_match_results.loc[(tmp_match_results["Result"] == "W")].groupby(["Team"])["Result"].value_counts().reset_index()
+            # Extract probabilities
+            home_lose, home_tie, home_win = predict_proba[0]
+            away_lose, away_tie, away_win = predict_proba[1]
             
-            if len(result_summary) > 1:
-                if (result_summary.loc[0, "count"] != result_summary.loc[1, "count"]):
-                    max_row_index = result_summary['count'].idxmax()
-                    team_name_max_wins = result_summary.loc[max_row_index, 'Team']
-                    
-                    if (team_name_max_wins == team1_name):
-                        team1_weight = 2.0
-                    elif (team_name_max_wins == team2_name):
-                        team2_weight = 2.0
-                               
+            # When Win probabilitie are extremely close, fovor the team with the most wins against the other team historically.
+            if (((away_win - home_win) ** 2) * 100) < 0.041:
+                favoring = 'Applied do to the closeness of both win probabilites'
+                tmp_match_results = match_result_lookup.loc[(match_result_lookup["Team"].isin([team1_name, team2_name])) & (match_result_lookup["Opp"].isin([team1_name, team2_name]))].reset_index()        
+                result_summary = tmp_match_results.loc[(tmp_match_results["Result"] == "W")].groupby(["Team"])["Result"].value_counts().reset_index()
+                
+                if len(result_summary) > 1:
+                    if (result_summary.loc[0, "count"] != result_summary.loc[1, "count"]):
+                        max_row_index = result_summary['count'].idxmax()
+                        team_name_max_wins = result_summary.loc[max_row_index, 'Team']
+                        
+                        if (team_name_max_wins == team1_name):
+                            team1_weight = 2.0
+                        elif (team_name_max_wins == team2_name):
+                            team2_weight = 2.0
+                                   
+                    else:
+                        max_row_index = result_summary['count'].idxmax()
+                        team_name_max_wins = result_summary.loc[max_row_index, 'Team']
+                        
+                        if (team_name_max_wins == team1_name):
+                            team1_weight = 2.0
+                        elif (team_name_max_wins == team2_name):
+                            team2_weight = 2.0
+                        
                 else:
-                    max_row_index = result_summary['count'].idxmax()
-                    team_name_max_wins = result_summary.loc[max_row_index, 'Team']
+                    team_wins = win_count_df.loc[(win_count_df["Team"].isin([team1_name, team2_name])) & (win_count_df["Result"] == "W"),["Team","count"]].reset_index()        
+                    max_row_index = team_wins['count'].idxmax()
+                    team_name_max_wins = team_wins.loc[max_row_index, 'Team']
                     
                     if (team_name_max_wins == team1_name):
                         team1_weight = 2.0
                     elif (team_name_max_wins == team2_name):
-                        team2_weight = 2.0
+                        team2_weight = 2.0 
+
+                    
+                    #issues = 'None'
+                    #favoring = 'None applied due to issue'
                     
             else:
-                team_wins = win_count_df.loc[(win_count_df["Team"].isin([team1_name, team2_name])) & (win_count_df["Result"] == "W"),["Team","count"]].reset_index()        
-                max_row_index = team_wins['count'].idxmax()
-                team_name_max_wins = team_wins.loc[max_row_index, 'Team']
-                
-                if (team_name_max_wins == team1_name):
-                    team1_weight = 2.0
-                elif (team_name_max_wins == team2_name):
-                    team2_weight = 2.0 
+                favoring = 'None applied'
 
-                
-                #issues = 'None'
-                #favoring = 'None applied due to issue'
-                
-        else:
-            favoring = 'None applied'
-
-        
-        # When Win probabilitie are extremely close, fovor the team with the most wins historically.
-        # if (((away_win - home_win) ** 2) * 100) < 0.041:
-        #     team_wins = win_count_df.loc[(win_count_df["Team"].isin(["Manchester Utd", "Arsenal"])) & (win_count_df["Result"] == "W"),["Team","count"]].reset_index()        
-        #     max_row_index = team_wins['count'].idxmax()
-        #     team_name_max_wins = team_wins.loc[max_row_index, 'Team']
             
-        #     if (team_name_max_wins == team1_name):
-        #         team1_weight = 2.0
-        #     elif (team_name_max_wins == team2_name):
-        #         team2_weight = 2.0
+            # When Win probabilitie are extremely close, fovor the team with the most wins historically.
+            # if (((away_win - home_win) ** 2) * 100) < 0.041:
+            #     team_wins = win_count_df.loc[(win_count_df["Team"].isin(["Manchester Utd", "Arsenal"])) & (win_count_df["Result"] == "W"),["Team","count"]].reset_index()        
+            #     max_row_index = team_wins['count'].idxmax()
+            #     team_name_max_wins = team_wins.loc[max_row_index, 'Team']
+                
+            #     if (team_name_max_wins == team1_name):
+            #         team1_weight = 2.0
+            #     elif (team_name_max_wins == team2_name):
+            #         team2_weight = 2.0
+            
+            # Calculate overall probabilities
+            home_win_prob = ((home_win + away_lose)/2) * team1_weight
+            away_win_prob = ((away_win + home_lose)/2) * team2_weight
+            tie_prob = ((home_tie * team1_weight) + (away_tie * team2_weight))/2 # + home_win * away_win + home_lose * away_lose
+            
+            # Normalize probabilities due to a high precentage of conflicting outcomes
+            total_prob = home_win_prob + away_win_prob + tie_prob
+            home_win_prob /= total_prob
+            away_win_prob /= total_prob
+            tie_prob /= total_prob
+            
+            # Select the Pick
+            if (home_win_prob > away_win_prob) and (home_win_prob > tie_prob):
+                pick = "Home Win"
+            elif (away_win_prob > home_win_prob) and (away_win_prob > tie_prob):
+                pick = "Away Win"
+            elif (tie_prob > (home_win_prob * 1.2)) and (tie_prob > (away_win_prob * 1.2)):
+                pick = "Tie"
+            else:
+                pick = max(home_win_prob, away_win_prob)
+            
+            # Convert to percentage and reduce number of decimals
+            home_win_prob = round((home_win_prob * 100),2)
+            tie_prob = round((tie_prob * 100),2)
+            away_win_prob = round((away_win_prob * 100),2)
         
-        # Calculate overall probabilities
-        home_win_prob = ((home_win + away_lose)/2) * team1_weight
-        away_win_prob = ((away_win + home_lose)/2) * team2_weight
-        tie_prob = ((home_tie * team1_weight) + (away_tie * team2_weight))/2 # + home_win * away_win + home_lose * away_lose
         
-        # Normalize probabilities due to a high precentage of conflicting outcomes
-        total_prob = home_win_prob + away_win_prob + tie_prob
-        home_win_prob /= total_prob
-        away_win_prob /= total_prob
-        tie_prob /= total_prob
-        
-        # Select the Pick
-        if (home_win_prob > away_win_prob) and (home_win_prob > tie_prob):
-            pick = "Home Win"
-        elif (away_win_prob > home_win_prob) and (away_win_prob > tie_prob):
-            pick = "Away Win"
-        elif (tie_prob > (home_win_prob * 1.2)) and (tie_prob > (away_win_prob * 1.2)):
-            pick = "Tie"
-        else:
-            pick = max(home_win_prob, away_win_prob)
-        
-        # Convert to percentage and reduce number of decimals
-        home_win_prob = round((home_win_prob * 100),2)
-        tie_prob = round((tie_prob * 100),2)
-        away_win_prob = round((away_win_prob * 100),2)
-    
-    
-        # Output prediction to tab.  Using markdown to set text color
-        
-        middle.markdown(f"""
-            <span style="color: red;">Our Prediction Using: {clf_reduced_name}</span><br><br>
-            <span style="color: red;">Home Win: {home_win_prob}</span><br><br>
-            <span style="color: red;">Tie: {tie_prob}</span><br><br>
-            <span style="color: red;">Away Win: {away_win_prob}</span><br><br>
-            <span style="color: red;">Pick: {pick}</span><br><br>
-            <span style="color: red;">Statistical Logic: {bay_application}</span><br><br>
-            <span style="color: red;">Actual Probabilities: {predict_proba}</span><br><br>
-            <span style="color: red;">Favoring: {favoring} - Home Win: {home_win} Away Win: {away_win}</span>
+            # Output prediction to tab.  Using markdown to set text color
+            
+            #col1.markdown(f"""
+            #    <span style="color: black;">Our Prediction Using: {clf_reduced_name}</span><br><br>
+            #    """, unsafe_allow_html=True) 
+            
+            col1.subheader(f"Home Win: {home_win_prob}")
+
+            col3.subheader(f"Away Win: {away_win_prob}")
+
+            col2.subheader(f"Tie Prob: {tie_prob}")
+
+            st.subheader(f"Pick: {pick}")
+            
+            # col1.markdown(f"""    
+            #     <span style="color: red;">Home Win: {home_win_prob}</span><br><br>
+            #     """, unsafe_allow_html=True)
+            
+            # col2.markdown(f"""
+            #     <span style="color: red;">Away Win: {away_win_prob}</span><br><br>                
+            #     """, unsafe_allow_html=True)
+                
+            # st.markdown(f"""    
+            #     <span style="color: red;">Tie: {tie_prob}</span><br><br>
+            #     <span style="color: red;">Pick: {pick}</span><br><br>
+            #     """, unsafe_allow_html=True) 
+                
+            st.markdown(f"""
+            <span style="color: black;">Notes on prediction:</span><br><br>
+            <span style="color: black;">Statistical Logic: {bay_application}</span><br><br>
+            <span style="color: black;">Actual Probabilities: {predict_proba}</span><br><br>
+            <span style="color: black;">Favoring: {favoring} - Home Win: {home_win} Away Win: {away_win}</span>
             """, unsafe_allow_html=True)   
-        
-        middle.dataframe(combined_avg)
+            
+            st.text("***Team stats after any statistical logic or favoring in order of importance to prediction***")
+            st.dataframe(combined_avg, column_order=("GF", "Long_Cmp", "Poss", "SoT", "Blocks", "Succ"))
             
         bay_application = ''
         favoring = ''
     
-    #############
-    # Middle column
-    #############
-    
-    # Create dataframes for each game week containing Match ID, Home Team, Away Team, Home Weight, Away Weight
-    
-    # GW1 no weights, rely on historic data entirely.  Unsure how summer transfers will work out
-    game_week1_baseline_list = [[1,"Liverpool", "Bournemouth", 1, 1],
-                      [2,"Aston Villa", "Newcastle", 1, 1],
-                      [3,"Brighton", "Fulham", 1, 1],
-                      [4,"Sunderland", "West Ham", 1, 1],
-                      [5,"Spurs", "Burnley", 1, 1],
-                      [6,"Wolves", "Man City", 1, 1],
-                      [7,"Nott'm Forest", "Brentford", 1, 1], 
-                      [8,"Chelsea", "Crystal Palace", 1, 1],
-                      [9,"Man Utd", "Arsenal", 1, 1],
-                      [10,"Leeds United", "Everton", 1, 1]]
-    game_week1_baseline = pd.DataFrame(game_week1_baseline_list, columns=["M#","Home", "Away", "H-Wt", "A-Wt"])
-    
-    # GW2 Add weights now that we have seen everyone play once and better understand transfers   
-    game_week2_weighted_list = [[1,"West Ham", "Chelsea", 1, 1],
-                      [2,"Man City", "Spurs", 1, 1],
-                      [3,"Bournemouth", "Wolves", 1, 1],
-                      [4,"Brentford", "Aston Villa", 1, 1],
-                      [5,"Burnley", "Sunderland", 1, 1],
-                      [6,"Arsenal", "Leeds United", 1, 1],
-                      [7,"Crystal Palace", "Nott'm Forest", 1, 1], 
-                      [8,"Everton", "Brighton", 2, 1],
-                      [9,"Fulham", "Man Utd", 1, 1],
-                      [10,"Newcastle", "Liverpool", 1, 1]]
-    game_week2_weighted = pd.DataFrame(game_week2_weighted_list, columns=["M#","Home", "Away", "H-Wt", "A-Wt"])
-    
-    # GW3 Continue with weights plus observer underestimates in better teams from last season   
-    game_week3_weighted_list = [[1,"Chelsea", "Fulham", 1, 1],
-                      [2, "Man Utd", "Burnley", 1, 1],
-                      [3, "Sunderland", "Brentford", 1, 1],
-                      [4, "Spurs", "Bournemouth",1, 1],
-                      [5, "Wolves", "Everton",1 , 1],
-                      [6, "Leeds United", "Newcastle",1, 1],
-                      [7, "Brighton", "Man City", 1, 1], 
-                      [8, "Nott'm Forest", "West Ham", 1, 2],
-                      [9, "Liverpool", "Arsenal", 1, 1],
-                      [10,"Aston Villa", "Crystal Palace", 1, 1]]
-    game_week3_weighted = pd.DataFrame(game_week3_weighted_list, columns=["M#","Home", "Away", "H-Wt", "A-Wt"])
-    
-    # GW4 Continue with weights plus one more based on last 3 GW performance   
-    game_week4_weighted_list = [[1,"Arsenal", "Nott'm Forest", 1, 1],
-                      [2,"Bournemouth", "Brighton", 1, 1],
-                      [3,"Crystal Palace", "Sunderland", 1, 1],
-                      [4,"Everton", "Aston Villa",1, 1],
-                      [5,"Fulham", "Leeds United",1 , 1],
-                      [6,"Newcastle", "Wolves" ,1, 1],
-                      [7,"West Ham", "Spurs", 1, 1], 
-                      [8,"Brentford", "Chelsea", 1, 1],
-                      [9,"Burnley", "Liverpool", 1, 1],
-                      [10,"Man City", "Man Utd", 1, 1]]
-    game_week4_weighted = pd.DataFrame(game_week4_weighted_list, columns=["M#","Home", "Away", "H-Wt", "A-Wt"])
-    
-    # Create a dictionary to map string names to actual DataFrames
-    match_week_mapping = {
-        "game_week1": game_week1_baseline,
-        "game_week2": game_week2_weighted,
-        "game_week3": game_week3_weighted,
-        "game_week4": game_week4_weighted
-    }
-    
-    middle.subheader("Game Week matches with team weights.")
-    
-    # pull down list to select game week to display
-    gw_num_match_lineup = middle.selectbox(
-        "Pick a game week (note: match id for reference with actual results):",
-        ("game_week1",
-         "game_week2",
-         "game_week3",
-         "game_week4"
-         ),  key="gw_num_match_lineup")
-    
-    # Get the selected DataFrame and display it
-    selected_dataframe = match_week_mapping.get(gw_num_match_lineup)
-    if selected_dataframe is not None:
-        middle.dataframe(selected_dataframe, hide_index=True)
-    else:
-        middle.write(f"DataFrame for {gw_num_match_lineup} not yet implemented")
+    # Establish columns on tab to arrange content
+    with st.form("matches_form"):
 
-    # Create dataframes for each game week containing Match ID, Actual  Result, Predicted Result
-   
-    # Game week 1
-    gw_1_actuals_list = [[1,"Liverpool", "Bournemouth", "4-2", "Home Win", "Home Win"],
-                      [2,"Aston Villa", "Newcastle", "0-0", "Tie", "Home Win"],
-                      [3,"Brighton", "Fulham", "1-1", "Tie", "Tie"],
-                      [4,"Sunderland", "West Ham", "3-0", "Home Win", "Home Win"],
-                      [5,"Spurs", "Burnley", "3-0", "Home Win", "Home Win"],
-                      [6,"Wolves", "Man City", "0-4", "Away Win", "Away Win"],
-                      [7,"Nott'm Forest", "Brentford", "3-1", "Home Win", "Tie"], 
-                      [8,"Chelsea", "Crystal Palace", "0-0", "Tie", "Home Win"],
-                      [9,"Man Utd", "Arsenal", "0-1", "Away Win", "Away Win"],
-                      [10,"Leeds United", "Everton", "1-0", "Home Win", "Tie"]]
-    gw_1_actuals = pd.DataFrame(gw_1_actuals_list, columns=["match ID","Home","Away", "Score", "Result", "Predicted"])
+        left, right = st.columns(2, vertical_alignment="top")
+        
+        gw_num_pick = st.selectbox(
+            "Pick a game week:",
+            ("game_week1",
+             "game_week2",
+             "game_week3",
+             "game_week4",
+             "game_week5"
+             ),  key="gw_num_pick")
+        
+        # Every form must have a submit button.
+        submitted = st.form_submit_button("See Matches")
+        if submitted:
+        
+            #############
+            # Left column
+            #############
+        
+            # Create dataframes for each game week containing Match ID, Actual  Result, Predicted Result
+           
+            # Game week 1
+            gw_1_actuals_list = [[1,"Liverpool", "Bournemouth", "4-2", "Home Win", "Home Win"],
+                              [2,"Aston Villa", "Newcastle", "0-0", "Tie", "Home Win"],
+                              [3,"Brighton", "Fulham", "1-1", "Tie", "Tie"],
+                              [4,"Sunderland", "West Ham", "3-0", "Home Win", "Home Win"],
+                              [5,"Spurs", "Burnley", "3-0", "Home Win", "Home Win"],
+                              [6,"Wolves", "Man City", "0-4", "Away Win", "Away Win"],
+                              [7,"Nott'm Forest", "Brentford", "3-1", "Home Win", "Tie"], 
+                              [8,"Chelsea", "Crystal Palace", "0-0", "Tie", "Home Win"],
+                              [9,"Man Utd", "Arsenal", "0-1", "Away Win", "Away Win"],
+                              [10,"Leeds United", "Everton", "1-0", "Home Win", "Tie"]]
+            gw_1_actuals = pd.DataFrame(gw_1_actuals_list, columns=["match ID","Home","Away", "Score", "Result", "Predicted"])
+        
+            # Game week 2    
+            gw_2_actuals_list = [[1,"West Ham", "Chelsea", "1-5", "Away Win", "Away Win"],
+                              [2,"Man City", "Spurs", "0-2", "Away Win", "Home Win"],
+                              [3,"Bournemouth", "Wolves", "1-0", "Home Win", "Home Win"],
+                              [4,"Brentford", "Aston Villa", "1-0", "Home Win", "Away Win"],
+                              [5,"Burnley", "Sunderland", "2-0", "Home Win", "Home Win"],
+                              [6,"Arsenal", "Leeds United", "5-0", "Home Win", "Home Win"],
+                              [7,"Crystal Palace", "Nott'm Forest", "1-1", "Tie", "Tie"], 
+                              [8,"Everton", "Brighton", "2-0", "Home Win", "Home Win"],
+                              [9,"Fulham", "Man Utd", "1-1", "Tie", "Away Win"],
+                              [10,"Newcastle", "Liverpool", "2-3", "Away Win", "Away Win"]]
+            gw_2_actuals = pd.DataFrame(gw_2_actuals_list, columns=["match ID","Home","Away", "Score", "Result", "Predicted"])
+        
+            # game week 3
+            gw_3_actuals_list = [[1,"Chelsea", "Fulham", "2-0", "Home Win", "Home Win"],
+                              [2, "Man Utd", "Burnley", "3-2", "Home Win", "Home Win"],
+                              [3, "Sunderland", "Brentford", "2-1", "Home Win", "Home Win"],
+                              [4, "Spurs", "Bournemouth", "0-1", "Away Win", "Home Win"],
+                              [5, "Wolves", "Everton", "2-3", "Away Win", "Home Win"],
+                              [6, "Leeds United", "Newcastle", "0-0", "Tie", "Away Win"],
+                              [7, "Brighton", "Man City", "2-1", "Home Win", "Away Win"], 
+                              [8, "Nott'm Forest", "West Ham", "0-3", "Away Win", "Tie"],
+                              [9, "Liverpool", "Arsenal", "1-0", "Home Win", "Home Win"],
+                              [10,"Aston Villa", "Crystal Palace", "0-3", "Away Win", "Home Win"]]
+            gw_3_actuals = pd.DataFrame(gw_3_actuals_list, columns=["match ID","Home","Away", "Score", "Result", "Predicted"])
+        
+            # game week 4
+            gw_4_actuals_list = [[1,"Arsenal", "Nott'm Forest", "3-0", "Home Win", "Home Win"],
+                            [2,"Bournemouth", "Brighton", "2-1", "Home Win", "Away Win"],
+                            [3,"Crystal Palace", "Sunderland", "0-0", "Tie", "Tie"],
+                            [4,"Everton", "Aston Villa", "0-0", "Tie", "Away Win"],
+                            [5,"Fulham", "Leeds United", "1-0", "Home Win", "Home Win"],
+                            [6,"Newcastle", "Wolves", "1-0", "Home Win", "Home Win"],
+                            [7,"West Ham", "Spurs", "0-3", "Away Win", "Away Win"],
+                            [8,"Brentford", "Chelsea", "2-2", "Tie", "Away Win"],
+                            [9,"Burnley", "Liverpool", "0-1", "Away Win", "Away Win"],
+                            [10,"Man City", "Man Utd", "3-0", "Home Win", "Home Win"]]
+            gw_4_actuals = pd.DataFrame(gw_4_actuals_list, columns=["match ID","Home","Away", "Score", "Result", "Predicted"])
+            
+            # game week 5
+            gw_5_actuals_list = [["Liverpool", "Everton", np.nan, np.nan, "Home Win"],
+                              ["Brighton", "Spurs", np.nan, np.nan, "Away Win"],
+                              ["Burnley", "Nott'm Forest", np.nan, np.nan, "Tie"],
+                              ["West Ham", "Crystal Palace", np.nan,  np.nan, "Away Win"],
+                              ["Wolves", "Leeds Utd", np.nan,  np.nan, "Away Win"],
+                              ["Man Utd", "Chelsea", np.nan,  np.nan, "Away Win"],
+                              ["Fulham", "Brentford", np.nan,  np.nan, "Home Win"], 
+                              ["Bournemouth", "Newcastle", np.nan,  np.nan, "Away Win"],
+                              ["Sunderland", "Aston Villa", np.nan,  np.nan, "Away Win"],
+                              ["Arsenal", "Man City", np.nan,  np.nan, "Away Win"]]
+            gw_5_actuals = pd.DataFrame(gw_5_actuals_list, columns=["Home","Away", "Score", "Result", "Predicted"])
+            
+            # mapping of game selection text to the correct dataframe
+            actuals_week_mapping = {
+                "game_week1": gw_1_actuals,
+                "game_week2": gw_2_actuals,
+                "game_week3": gw_3_actuals,
+                "game_week4": gw_4_actuals, 
+                "game_week5": gw_5_actuals
+            }
+            
+            # Display Actual information
+            
+            left.subheader("Actual VS. Predicted")
+            
+            # gw_num_actuals = left.selectbox(
+            #     "Pick a game week:",
+            #     ("game_week1",
+            #      "game_week2",
+            #      "game_week3",
+            #      "game_week4",
+            #      "game_week5"
+            #      ),  key="gw_num_actuls")
+            
+            # Get the selected DataFrame and display it
+            selected_dataframe = actuals_week_mapping.get(gw_num_pick)
+            if selected_dataframe is not None:
+                if  selected_dataframe.isna().sum().sum() > 0:
+                    predict_calc_df = selected_dataframe.dropna(how = "any" )
+                else:
+                    predict_calc_df = selected_dataframe
+                num_right =len(predict_calc_df.loc[(predict_calc_df["Predicted"] == predict_calc_df["Result"])])
+                total = len(predict_calc_df)
+                if total > 0:
+                    accuracy = num_right/total
+                    styled_df = selected_dataframe.style.apply(highlight_multiple_conditions, axis=1)        
+                    left.dataframe(styled_df, column_order= ("Home","Away", "Score", "Predicted"), hide_index=True)
+                    left.text(f"Predicted correct accuracy: {num_right} of {total} played - {accuracy:.0%}")
+                else:
+                    styled_df = selected_dataframe.style.apply(highlight_multiple_conditions, axis=1)        
+                    left.dataframe(styled_df, column_order= ("Home","Away", "Score", "Predicted"), hide_index=True)
+                
+            else:
+                left.write(f"DataFrame for {gw_num_pick} not yet implemented")
+                left.text("Predicted correct accuracy: NONE")
+        
+            #############
+            # Right column
+            #############
+        
+            # GW1 no weights, rely on historic data entirely.  Unsure how summer transfers will work out
+            game_week1_baseline_list = [[1,"Liverpool", "Bournemouth", 1, 1],
+                              [2,"Aston Villa", "Newcastle", 1, 1],
+                              [3,"Brighton", "Fulham", 1, 1],
+                              [4,"Sunderland", "West Ham", 1, 1],
+                              [5,"Spurs", "Burnley", 1, 1],
+                              [6,"Wolves", "Man City", 1, 1],
+                              [7,"Nott'm Forest", "Brentford", 1, 1], 
+                              [8,"Chelsea", "Crystal Palace", 1, 1],
+                              [9,"Man Utd", "Arsenal", 1, 1],
+                              [10,"Leeds United", "Everton", 1, 1]]
+            game_week1_baseline = pd.DataFrame(game_week1_baseline_list, columns=["M#","Home", "Away", "H-Wt", "A-Wt"])
+            
+            # GW2 Add weights now that we have seen everyone play once and better understand transfers   
+            game_week2_weighted_list = [[1,"West Ham", "Chelsea", 1, 1],
+                              [2,"Man City", "Spurs", 1, 1],
+                              [3,"Bournemouth", "Wolves", 1, 1],
+                              [4,"Brentford", "Aston Villa", 1, 1],
+                              [5,"Burnley", "Sunderland", 1, 1],
+                              [6,"Arsenal", "Leeds United", 1, 1],
+                              [7,"Crystal Palace", "Nott'm Forest", 1, 1], 
+                              [8,"Everton", "Brighton", 2, 1],
+                              [9,"Fulham", "Man Utd", 1, 1],
+                              [10,"Newcastle", "Liverpool", 1, 1]]
+            game_week2_weighted = pd.DataFrame(game_week2_weighted_list, columns=["M#","Home", "Away", "H-Wt", "A-Wt"])
+            
+            # GW3 Continue with weights plus observer underestimates in better teams from last season   
+            game_week3_weighted_list = [[1,"Chelsea", "Fulham", 1, 1],
+                              [2, "Man Utd", "Burnley", 1, 1],
+                              [3, "Sunderland", "Brentford", 1, 1],
+                              [4, "Spurs", "Bournemouth",1, 1],
+                              [5, "Wolves", "Everton",1 , 1],
+                              [6, "Leeds United", "Newcastle",1, 1],
+                              [7, "Brighton", "Man City", 1, 1], 
+                              [8, "Nott'm Forest", "West Ham", 1, 2],
+                              [9, "Liverpool", "Arsenal", 1, 1],
+                              [10,"Aston Villa", "Crystal Palace", 1, 1]]
+            game_week3_weighted = pd.DataFrame(game_week3_weighted_list, columns=["M#","Home", "Away", "H-Wt", "A-Wt"])
+            
+            # GW4 Continue with weights plus one more based on last 3 GW performance   
+            game_week4_weighted_list = [[1,"Arsenal", "Nott'm Forest", 1, 1],
+                              [2,"Bournemouth", "Brighton", 1, 1],
+                              [3,"Crystal Palace", "Sunderland", 1, 1],
+                              [4,"Everton", "Aston Villa",1, 1],
+                              [5,"Fulham", "Leeds United",1 , 1],
+                              [6,"Newcastle", "Wolves" ,1, 1],
+                              [7,"West Ham", "Spurs", 1, 1], 
+                              [8,"Brentford", "Chelsea", 1, 1],
+                              [9,"Burnley", "Liverpool", 1, 1],
+                              [10,"Man City", "Man Utd", 1, 1]]
+            game_week4_weighted = pd.DataFrame(game_week4_weighted_list, columns=["M#","Home", "Away", "H-Wt", "A-Wt"])
+            
+            # GW5 Continue with weights plus one more based on last 3 GW performance   
+            game_week5_list = [["Liverpool", "Everton"],
+                              ["Brighton", "Spurs"],
+                              ["Burnley", "Nott'm Forest"],
+                              ["West Ham", "Crystal Palace"],
+                              ["Wolves", "Leeds Utd"],
+                              ["Man Utd", "Chelsea"],
+                              ["Fulham", "Brentford"], 
+                              ["Bournemouth", "Newcastle"],
+                              ["Sunderland", "Aston Villa"],
+                              ["Arsenal", "Man City"]]
+            game_week5_df = pd.DataFrame(game_week5_list, columns=["Home", "Away"])
+            
+            # Create a dictionary to map string names to actual DataFrames
+            match_week_mapping = {
+                "game_week1": game_week1_baseline,
+                "game_week2": game_week2_weighted,
+                "game_week3": game_week3_weighted,
+                "game_week4": game_week4_weighted,
+                "game_week5": game_week5_df
+            }
+            
+            right.subheader("Game Week matches")
+            
+            # pull down list to select game week to display
+            # gw_num_match_lineup = right.selectbox(
+            #     "Pick a game week:",
+            #     ("game_week1",
+            #      "game_week2",
+            #      "game_week3",
+            #      "game_week4",
+            #      "game_week5"
+            #      ),  key="gw_num_match_lineup")
+            
+            # Get the selected DataFrame and display it
+            selected_dataframe = match_week_mapping.get(gw_num_pick)
+            if selected_dataframe is not None:
+                right.dataframe(selected_dataframe, column_order=("Home", "Away"), hide_index=True)
 
-    # Game week 2    
-    gw_2_actuals_list = [[1,"West Ham", "Chelsea", "1-5", "Away Win", "Away Win"],
-                      [2,"Man City", "Spurs", "0-2", "Away Win", "Home Win"],
-                      [3,"Bournemouth", "Wolves", "1-0", "Home Win", "Home Win"],
-                      [4,"Brentford", "Aston Villa", "1-0", "Home Win", "Away Win"],
-                      [5,"Burnley", "Sunderland", "2-0", "Home Win", "Home Win"],
-                      [6,"Arsenal", "Leeds United", "5-0", "Home Win", "Home Win"],
-                      [7,"Crystal Palace", "Nott'm Forest", "1-1", "Tie", "Tie"], 
-                      [8,"Everton", "Brighton", "2-0", "Home Win", "Home Win"],
-                      [9,"Fulham", "Man Utd", "1-1", "Tie", "Away Win"],
-                      [10,"Newcastle", "Liverpool", "2-3", "Away Win", "Away Win"]]
-    gw_2_actuals = pd.DataFrame(gw_2_actuals_list, columns=["match ID","Home","Away", "Score", "Result", "Predicted"])
 
-    # game week 3
-    gw_3_actuals_list = [[1,"Chelsea", "Fulham", "2-0", "Home Win", "Home Win"],
-                      [2, "Man Utd", "Burnley", "3-2", "Home Win", "Home Win"],
-                      [3, "Sunderland", "Brentford", "2-1", "Home Win", "Home Win"],
-                      [4, "Spurs", "Bournemouth", "0-1", "Away Win", "Home Win"],
-                      [5, "Wolves", "Everton", "2-3", "Away Win", "Home Win"],
-                      [6, "Leeds United", "Newcastle", "0-0", "Tie", "Away Win"],
-                      [7, "Brighton", "Man City", "2-1", "Home Win", "Away Win"], 
-                      [8, "Nott'm Forest", "West Ham", "0-3", "Away Win", "Tie"],
-                      [9, "Liverpool", "Arsenal", "1-0", "Home Win", "Home Win"],
-                      [10,"Aston Villa", "Crystal Palace", "0-3", "Away Win", "Home Win"]]
-    gw_3_actuals = pd.DataFrame(gw_3_actuals_list, columns=["match ID","Home","Away", "Score", "Result", "Predicted"])
 
-    # game week 4
-    gw_4_actuals_list = [[1,"Arsenal", "Nott'm Forest", "3-0", "Home Win", "Home Win"],
-                    [2,"Bournemouth", "Brighton", "2-1", "Home Win", "Away Win"],
-                    [3,"Crystal Palace", "Sunderland", "0-0", "Tie", "Tie"],
-                    [4,"Everton", "Aston Villa", "0-0", "Tie", "Away Win"],
-                    [5,"Fulham", "Leeds United", "1-0", "Home Win", "Home Win"],
-                    [6,"Newcastle", "Wolves", "1-0", "Home Win", "Home Win"],
-                    [7,"West Ham", "Spurs", "0-3", "Away Win", "Away Win"],
-                    [8,"Brentford", "Chelsea", "2-2", "Tie", "Away Win"],
-                    [9,"Burnley", "Liverpool", np.nan, np.nan, "Away Win"],
-                    [10,"Man City", "Man Utd", np.nan, np.nan, "Home Win"]]
-    gw_4_actuals = pd.DataFrame(gw_4_actuals_list, columns=["match ID","Home","Away", "Score", "Result", "Predicted"])
-    
-    # mapping of game selection text to the correct dataframe
-    actuals_week_mapping = {
-        "game_week1": gw_1_actuals,
-        "game_week2": gw_2_actuals,
-        "game_week3": gw_3_actuals,
-        "game_week4": gw_4_actuals
-    }
-    
-    # Display Actual information
-    
-    middle.subheader("Actual VS. Predicted predicted by Game Week")
-    
-    gw_num_actuals = middle.selectbox(
-        "Pick a game week:",
-        ("game_week1",
-         "game_week2",
-         "game_week3",
-         "game_week4"
-         ),  key="gw_num_actuls")
-    
-    # Get the selected DataFrame and display it
-    selected_dataframe = actuals_week_mapping.get(gw_num_actuals)
-    if selected_dataframe is not None:
-        if  selected_dataframe.isna().sum().sum() > 0:
-            predict_calc_df = selected_dataframe.dropna(how = "any" )
-        else:
-            predict_calc_df = selected_dataframe
-        num_right =len(predict_calc_df.loc[(predict_calc_df["Predicted"] == predict_calc_df["Result"])])
-        total = len(predict_calc_df)
-        accuracy = num_right/total
-        middle.text(f"Predicted correct accuracy: {num_right} of {total} played - {accuracy:.0%}")
-        styled_df = selected_dataframe.style.apply(highlight_multiple_conditions, axis=1)        
-        middle.dataframe(styled_df, column_order= ("Home","Away", "Score", "Predicted"), hide_index=True)
-
-    else:
-        middle.write(f"DataFrame for {gw_num_actuals} not yet implemented")
-        middle.text("Predicted correct accuracy: NONE")
-
-    #############
-    # Right column
-    #############
     
     # Import table CSV file with all tables in it
     table_all_df = pd.read_csv("tables_all.csv")
@@ -652,10 +717,10 @@ with tab1:
     }
     
     # Display pick and dataframe
-    right.subheader("Quick Table View ")
-    right.text("Note: to see all parts of the Table click on the Tables tab at top of this page")
+    st.subheader("Quick Table View ")
+    st.text("Note: to see all parts of the Table click on the Tables tab at top of this page")
 
-    gw_num_tables = right.selectbox(
+    gw_num_tables = st.selectbox(
         "Pick a game week:",
         ("post game week 1",
          "post game week 2",
@@ -681,18 +746,19 @@ with tab1:
     # Get the selected DataFrame and display
     selected_dataframe = table_mapping.get(gw_num_tables)
     if selected_dataframe is not None:
-        right.dataframe(selected_dataframe, column_order=("Pos","Team"), hide_index=True)
+        st.dataframe(selected_dataframe, column_order=("Pos","Team"), hide_index=True)
 
     else:
-        right.write(f"DataFrame for {gw_num_tables} not yet implemented")
+        st.write(f"DataFrame for {gw_num_tables} not yet implemented")
         
 
 ################################################
 # Contents of tab2 - Full Table display
 ################################################
 
-# Convert scrapped table content from Premierleague.com        
-with tab2:    
+      
+with tab2:  
+        
     # Import table CSV file with all tables in it
     table_all_df = pd.read_csv("tables_all.csv")
     
@@ -758,7 +824,7 @@ with tab2:
         st.dataframe(selected_dataframe, column_order = ("Pos","Team","Pl","W","D","L","GF","GA","GD","Pts"), hide_index=True)
 
     else:
-        middle.write(f"DataFrame for {gw_num_tables} not yet implemented")
+        left.write(f"DataFrame for {gw_num_tables} not yet implemented")
     
         
     st.subheader("Matches played by each team in the historic dataset")    
