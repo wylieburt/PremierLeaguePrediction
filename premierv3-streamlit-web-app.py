@@ -174,6 +174,31 @@ def highlight_multiple_conditions(row):
         return ['background-color: #ffcccc'] * len(row)  # Red
     else:
         return [''] * len(row)
+    
+def enhanced_results_summary(df):
+    """
+    Create enhanced summary with totals and percentages
+    """
+    # Basic summary
+    result_summary = df.groupby('Team')['Result'].value_counts().unstack(fill_value=0)
+    
+    # Ensure all columns exist
+    for col in ['W', 'D', 'L']:
+        if col not in result_summary.columns:
+            result_summary[col] = 0
+    
+    # Add calculated columns
+    result_summary['Total_Games'] = result_summary['W'] + result_summary['D'] + result_summary['L']
+    result_summary['Win_Pct'] = (result_summary['W'] / result_summary['Total_Games'] * 100).round(1)
+    result_summary['Points'] = result_summary['W'] * 3 + result_summary['D'] * 1  # Football points system
+    
+    # Select columns and reset index
+    result_summary = result_summary[['W', 'D', 'L', 'Total_Games', 'Win_Pct', 'Points']].reset_index()
+    
+    # Sort by Points (highest to lowest)
+    result_summary = result_summary.sort_values('Points', ascending=False).reset_index(drop=True)
+    
+    return result_summary
 
 # 24-25 seasons
 #clf_reduced = pickle.load(open("web_app_Predictor.p", "rb"))
@@ -195,6 +220,11 @@ all_data_df['Result'] = all_data_df['Result'].str.split(' ').str[0]
 
 columns_to_keep = ['Date','Team', 'Opp', 'Result']
 match_result_lookup = all_data_df[columns_to_keep]
+
+enhanced_results_summary_df = enhanced_results_summary(match_result_lookup)
+
+merged_df = pd.merge(data_for_avg, enhanced_results_summary_df, how = "inner", on = "Team")
+
 
 ################################################
 # Create tabs to display at top of each tab
@@ -425,19 +455,7 @@ with tab1:
             col2.subheader(f"Tie Prob: {tie_prob}")
 
             st.subheader(f"Pick: {pick}")
-            
-            # col1.markdown(f"""    
-            #     <span style="color: red;">Home Win: {home_win_prob}</span><br><br>
-            #     """, unsafe_allow_html=True)
-            
-            # col2.markdown(f"""
-            #     <span style="color: red;">Away Win: {away_win_prob}</span><br><br>                
-            #     """, unsafe_allow_html=True)
-                
-            # st.markdown(f"""    
-            #     <span style="color: red;">Tie: {tie_prob}</span><br><br>
-            #     <span style="color: red;">Pick: {pick}</span><br><br>
-            #     """, unsafe_allow_html=True) 
+        
                 
             st.markdown(f"""
             <span style="color: black;">Notes on prediction:</span><br><br>
@@ -746,7 +764,7 @@ with tab1:
     # Get the selected DataFrame and display
     selected_dataframe = table_mapping.get(gw_num_tables)
     if selected_dataframe is not None:
-        st.dataframe(selected_dataframe, column_order=("Pos","Team"), hide_index=True)
+        st.dataframe(selected_dataframe, column_order=("Pos","Team","Pl","W","D","L","GF","GA","GD","Pts"), hide_index=True)
 
     else:
         st.write(f"DataFrame for {gw_num_tables} not yet implemented")
@@ -758,79 +776,30 @@ with tab1:
 
       
 with tab2:  
-        
-    # Import table CSV file with all tables in it
-    table_all_df = pd.read_csv("tables_all.csv")
     
-    # create a dataframe for each game week from table_all_df and selecting  on gw_num 
-    table_1_game_df = table_all_df[table_all_df["gw_num"] == 1]
-    table_2_game_df = table_all_df[table_all_df["gw_num"] == 2]
-    table_3_game_df = table_all_df[table_all_df["gw_num"] == 3] 
-    table_4_game_df = table_all_df[table_all_df["gw_num"] == 4]
+    st.header("Interesting views of the historic data used in this model")
     
-    # Mapping of selected text to proper dataframe
-    table_mapping = {
-        "post game week 1": table_1_game_df,
-        "post game week 2": table_2_game_df,
-        "post game week 3": table_3_game_df,
-        "post game week 4": table_4_game_df,
-        "post game week 5": table_3_game_df,
-        "post game week 6": table_3_game_df,
-        "post game week 7": table_3_game_df,
-        "post game week 8": table_3_game_df,
-        "post game week 9": table_3_game_df,
-        "post game week 10": table_3_game_df,
-        "post game week 11": table_3_game_df,
-        "post game week 12": table_3_game_df,
-        "post game week 13": table_3_game_df,
-        "post game week 14": table_3_game_df,
-        "post game week 15": table_3_game_df,
-        "post game week 16": table_3_game_df,
-        "post game week 17": table_3_game_df,
-        "post game week 18": table_3_game_df,
-        "post game week 19": table_3_game_df,
-        "post game week 20": table_3_game_df
-    }
-
-    st.subheader("Complete Table after all matches are played for the selected game week")    
-
-    gw_num_tables = st.selectbox(
-        "Pick a game week:",
-        ("post game week 1",
-         "post game week 2",
-         "post game week 3",
-        "post game week 4",
-        "post game week 5",
-        "post game week 6",
-        "post game week 7",
-        "post game week 8",
-        "post game week 9",
-        "post game week 10",
-        "post game week 11",
-        "post game week 12",
-        "post game week 13",
-        "post game week 14",
-        "post game week 15",
-        "post game week 16",
-        "post game week 17",
-        "post game week 18",
-        "post game week 19",
-        "post game week 20"          
-         ),  key="gw_num_tables")
+    st.subheader("Basic information on dataset")
+    st.text(f"Total number of matches used for training and testing--> {data_for_avg.shape[0] / 2}")
+    st.text(f"Each team in a match is represented with a row in the dataset for total samples--> {data_for_avg.shape[0]}")
+    st.text(f"Total teams in historic dataset--> {len(enhanced_results_summary_df)}")
     
-    # Get the selected DataFrame and display
-    selected_dataframe = table_mapping.get(gw_num_tables)
-    if selected_dataframe is not None:
-        st.dataframe(selected_dataframe, column_order = ("Pos","Team","Pl","W","D","L","GF","GA","GD","Pts"), hide_index=True)
-
-    else:
-        left.write(f"DataFrame for {gw_num_tables} not yet implemented")
+    st.text("Sample of data used for training and testing")
+    st.dataframe(data_for_avg.sample(frac=0.003), hide_index=True)
     
-        
     st.subheader("Matches played by each team in the historic dataset")    
 
     games_played_df = data_for_avg['Team'].value_counts().reset_index()
-    st.dataframe(games_played_df, hide_index=True)
+    st.dataframe(games_played_df, width= 175, hide_index=True)
+    
+    st.subheader("Most Points - Ordered by Points")    
+    st.dataframe(enhanced_results_summary_df, hide_index=True)
+    
+    st.subheader("Team Performance Chart")
+    
+    # Now sort
+    st.bar_chart(merged_df, x="Team", y="Total_Games", color="Result", horizontal=True)
+    
     
 ################################################
 # Contents of tab3 - About (contains write up of project)
