@@ -225,12 +225,16 @@ enhanced_results_summary_df = enhanced_results_summary(match_result_lookup)
 
 merged_df = pd.merge(data_for_avg, enhanced_results_summary_df, how = "inner", on = "Team")
 
+accuracy_tracking = pd.DataFrame({"Game Week" : ["GW 1", "GW 2", "GW 3", "GW 4"],
+                                  "Accuracy" : [60, 70, 40, 70],
+                                  "Running Median" : [60, 65, 60, 65]})
+
 
 ################################################
 # Create tabs to display at top of each tab
 ################################################
 
-tab1, tab2, tab3 = st.tabs(["Make Prediction", "Tables", "About Project"])
+tab1, tab2, tab3 = st.tabs(["Make Prediction", "Data and Model", "About Project"])
 
 ################################################
 # Contents of tab1 - Make Prediction
@@ -244,11 +248,11 @@ with tab1:
     st.title("Premier League Match Prediction")
     st.text("Data Science and Machine Learning by Wylie")
     st.text("Data provided by FBref.com")
-    st.text("Date Range: 9/12/2020 and 8/31/2025.")
+
     
     # Add high level instructions
-    st.subheader("Select the Home and Away teams, along with their team weights to boost the probability. Click submit and scroll down to see the likelihood and pick of the match result")
-    st.text("Note: Team weights should range beteen 0 and 2.")
+    st.subheader("Select the Home and Away teams, along with their team weights to boost the probability if you want. Click 'Predict'")
+    st.text("Note: Team weights should range beteen 0 and 2.  The model is predicting a median accuracy of 65% with no weights.")
     
     with st.form("predict_form"):
         col1, col2, col3 = st.columns([1,1,1], vertical_alignment="bottom")
@@ -457,13 +461,11 @@ with tab1:
             st.subheader(f"Pick: {pick}")
         
                 
-            st.markdown(f"""
-            <span style="color: black;">Notes on prediction:</span><br><br>
-            <span style="color: black;">Statistical Logic: {bay_application}</span><br><br>
-            <span style="color: black;">Actual Probabilities: {predict_proba}</span><br><br>
-            <span style="color: black;">Favoring: {favoring} - Home Win: {home_win} Away Win: {away_win}</span>
-            """, unsafe_allow_html=True)   
             
+            st.text("Notes on prediction:")
+            st.text(f"Statistical Logic: {bay_application}")
+            st.text(f"Actual Probabilities: {predict_proba}")
+            st.text(f"Favoring: {favoring} - Home Win: {home_win} Away Win: {away_win}")
             st.text("***Team stats after any statistical logic or favoring in order of importance to prediction***")
             st.dataframe(combined_avg, column_order=("GF", "Long_Cmp", "Poss", "SoT", "Blocks", "Succ"))
             
@@ -476,7 +478,7 @@ with tab1:
         left, right = st.columns(2, vertical_alignment="top")
         
         gw_num_pick = st.selectbox(
-            "Pick a game week:",
+            "Pick a game week to see matches, results, and predictions:",
             ("game_week1",
              "game_week2",
              "game_week3",
@@ -780,6 +782,7 @@ with tab2:
     st.header("Interesting views of the historic data used in this model")
     
     st.subheader("Basic information on dataset")
+    st.text("Date Range--> 9/12/2020 and 8/31/2025")
     st.text(f"Total number of matches used for training and testing--> {data_for_avg.shape[0] / 2}")
     st.text(f"Each team in a match is represented with a row in the dataset for total samples--> {data_for_avg.shape[0]}")
     st.text(f"Total teams in historic dataset--> {len(enhanced_results_summary_df)}")
@@ -799,6 +802,33 @@ with tab2:
     
     # Now sort
     st.bar_chart(merged_df, x="Team", y="Total_Games", color="Result", horizontal=True)
+    
+    st.subheader("Model Description")
+    st.text("Model: Random Forest Classifer")
+    
+    
+    st.subheader("Model Performance")
+    
+    #st.line_chart(accuracy_tracking, x="Game Week", y="Accuracy", x_label="Game Week", y_label="Accuracy %")
+    st.line_chart(accuracy_tracking, x="Game Week", color=["#0000ff", "#66ff33"])
+    
+    st.subheader("Model Description")
+    
+
+    # Create DataFrame using dictionary
+    tmp_df = pd.DataFrame([clf_reduced.feature_importances_], columns=clf_reduced.feature_names_in_)
+
+    
+    st.text("Model type: Random Forest Classifier")
+    st.text(f"Number of samples used for training: {clf_reduced._n_samples}")
+    st.text(f"Number of Decision Trees in the forest: {clf_reduced.n_estimators}")
+    st.text(f"Maxium depth or levels of splits in decision trees: {clf_reduced.max_depth}")
+    st.text(f"Maxium features or number of features to consider when making each split in each decision tree: {clf_reduced.max_features}")
+    st.text(f"Number of pridiction possibility: {clf_reduced.n_classes_}")
+    st.text("Original number of features considered before permutation importance: 70")
+    st.text("Feature Importances from Model Assessment:")
+    st.dataframe(tmp_df)
+    
     
     
 ################################################
