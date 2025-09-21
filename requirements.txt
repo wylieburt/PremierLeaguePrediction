@@ -5,3 +5,5 @@ joblib
 numpy
 scipy
 protobuf
+matplotlib
+seaborn
