@@ -7,4 +7,3 @@ scipy
 protobuf
 matplotlib
 seaborn
-warnings
