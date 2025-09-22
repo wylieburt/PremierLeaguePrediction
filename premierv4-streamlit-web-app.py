@@ -83,7 +83,7 @@ tab1, tab2, tab3, tab4 = st.tabs(["Make Prediction", "Data and Model", "About Pr
 with tab1:
 
     # Image at top of tab
-    st.image("images/crystal_palace_stadium.jpg")
+    st.image("Images/crystal_palace_stadium.jpg")
 
     # Add title and references
     st.title("Premier League Match Prediction")
