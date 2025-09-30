@@ -1194,7 +1194,6 @@ with tab7:
             st.dataframe(top_5_players)
             
             ## Bar chart grouped by goals showing count of players
-x
             
             gl_grouping = all_players_df["Gls"].value_counts().reset_index()
             gl_grouping = gl_grouping[gl_grouping["Gls"] != 0]  # Remove rows where Gls is 0
