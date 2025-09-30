@@ -201,7 +201,7 @@ with tab1:
         # Every form must have a submit button.
         submitted = st.form_submit_button("Predict")
         if submitted:
-            
+            st.write("Expand the sidebar to the left to see prediction.")
             # Remove results feature, not needed for creating averages
             data_for_avg.drop(['Result'], axis=1, inplace = True)
             
@@ -340,22 +340,21 @@ with tab1:
             
             with st.sidebar:
                 st.sidebar.empty()
+                st.header("Model predictions of the selected match")
                 st.subheader(f"Home Win: {home_win_prob}")
-    
+                st.subheader(f"Tie Prob: {tie_prob}")    
                 st.subheader(f"Away Win: {away_win_prob}")
-    
-                st.subheader(f"Tie Prob: {tie_prob}")
     
                 st.subheader(f"Pick: {pick}")
             
-                st.text("Notes on prediction:")
-                st.text(f"Statistical Logic: {bay_application}")
-                st.text(f"Favoring: {favoring} - \n {team1_name}: {home_win} \n {team2_name}: {away_win}")             
+                st.write("__Notes on prediction:__")
+                st.write(f"__Statistical Logic:__ {bay_application}")
+                st.write(f"__Favoring:__ {favoring} \n {team1_name}: {home_win} \n {team2_name}: {away_win}")             
                 
                 st.write(f"{team1_name} was given a weight of {team1_weight}")
                 st.write(f"{team2_name} was given a weight of {team2_weight}")
 
-                st.text("Mean average of each team before any processing:")
+                st.write("Mean average of each team __before__ any processing:")
                 
                 df_transposed = original_combined_avg_disp.transpose()
 
@@ -373,7 +372,7 @@ with tab1:
                 st.dataframe(styled_df)
                 #st.dataframe(df_transposed)
                 
-                st.text("Team stats after any statistical logic or favoring in order of importance to prediction")
+                st.text("Team stats __after__ any statistical logic or favoring in order of importance to prediction")
                 
                 df_transposed = combined_avg.transpose()
 
@@ -1212,6 +1211,10 @@ with tab6:
             },
             hide_index=True
         )
+
+################################################
+# Contents of tab7 - Leader Boards
+################################################
         
 with tab7:
     
@@ -1304,38 +1307,73 @@ with tab7:
         with gf_tab: 
             st.write("**Team play between 2020-2025**")
             st.write("**Note:** Between these dates Sunderland has only played 3 matches")
-            teams_gf_group = all_data_df.groupby("Team")["GF"].sum().reset_index()
-            teams_gf_group = teams_gf_group.sort_values("GF", ascending=False)
-            top_10_teams_gf = teams_gf_group.nlargest(10, "GF")
             
+            # Get total number of matches each team has played
+            teams_group_cnt = all_data_df["Team"].value_counts().reset_index()
+            teams_group_cnt.rename(columns = {"count" : "MP"}, inplace = True)
+            
+            # Get total number of GF for each team
+            teams_gf_group = all_data_df.groupby("Team")["GF"].sum().reset_index()
+            
+            # Merge total number of matches (MP) with GF counts
+            teams_gf_group = teams_gf_group.merge(teams_group_cnt[["Team", "MP"]], how="left", on="Team")
+            
+            # calculate goals per match into a new column
+            teams_gf_group["Goals Per Match"] = teams_gf_group["GF"] / teams_gf_group["MP"]
+            
+            # Sort data for display
+            teams_gf_group = teams_gf_group.sort_values("Goals Per Match", ascending=False)
+            
+            # Grab the top 10 teams
+            top_10_teams_gf = teams_gf_group.nlargest(10, "Goals Per Match")
+            
+            # Display the table
             st.write("**Top Teams by Goals For**")
             st.dataframe(top_10_teams_gf, hide_index=True)
             
+            # Display the plot
             fig = px.bar(teams_gf_group, 
                          x="Team", 
-                         y="GF", 
+                         y="Goals Per Match", 
                          orientation="v",
-                         labels={"GF": "Sum of Goals For", "Team": "Team"},
-                         title="Team Distribution by GF")
+                         labels={"Goals Per Match": "SGoals Per Match", "Team": "Team"},
+                         title="Team Distribution by Goals Per Match")
             st.plotly_chart(fig)
             
         with ga_tab:
             st.write("**Team play between 2020-2025**")
             st.write("**Note:** Between these dates Sunderland has only played 3 matches")
             
-            teams_ga_group = all_data_df.groupby("Team")["GA"].sum().reset_index()
-            teams_ga_group = teams_ga_group.sort_values("GA", ascending=False)
-            top_10_teams_ga = teams_ga_group.nlargest(10, "GA")
+            # Get total number of matches each team has played
+            teams_group_cnt = all_data_df["Team"].value_counts().reset_index()
+            teams_group_cnt.rename(columns = {"count" : "MP"}, inplace = True)
             
-            st.write("**Top Teams by Goals Against**")
+            # Get total number of GF for each team
+            teams_ga_group = all_data_df.groupby("Team")["GA"].sum().reset_index()
+            
+            # Merge total number of matches (MP) with GF counts
+            teams_ga_group = teams_ga_group.merge(teams_group_cnt[["Team", "MP"]], how="left", on="Team")
+            
+            # calculate goals per match into a new column
+            teams_ga_group["Goals Against Per Match"] = teams_ga_group["GA"] / teams_ga_group["MP"]
+            
+            # Sort data for display
+            teams_ga_group = teams_ga_group.sort_values("Goals Against Per Match", ascending=False)
+            
+            # Grab the top 10 teams
+            top_10_teams_ga = teams_ga_group.nlargest(10, "Goals Against Per Match")
+            
+            # Display the table
+            st.write("**Top Teams by Goals For**")
             st.dataframe(top_10_teams_ga, hide_index=True)
+        
             
             fig = px.bar(teams_ga_group, 
                          x="Team", 
-                         y="GA", 
+                         y="Goals Against Per Match", 
                          orientation="v",
-                         labels={"GA": "Sum of Goals Against", "Team": "Team"},
-                         title="Team Distribution by GA")
+                         labels={"Goals Against Per Match": "Goals Against Per Match", "Team": "Team"},
+                         title="Team Distribution by GA per Match")
             st.plotly_chart(fig)
             
         with gd_tab:
@@ -1353,7 +1391,8 @@ with tab7:
                          x="Team", 
                          y="GD",
                          color="GD",
-                         color_discrete_map={'Positive': 'green', 'Negative': 'red'},
+                         color_continuous_scale=['red', 'lightgray', 'green'],
+                         color_continuous_midpoint=0,
                          orientation="v",
                          labels={"GD": "Sum of Goal Diff.", "Team": "Team"},
                          title="Team Distribution by GD")
