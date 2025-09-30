@@ -7,3 +7,5 @@ scipy
 protobuf
 matplotlib
 seaborn
+pydeck
+plotly
