@@ -72,7 +72,7 @@ enhanced_results_summary_df = preproc.enhanced_results_summary(match_result_look
 merged_df = pd.merge(data_for_avg, enhanced_results_summary_df, how = "inner", on = "Team")
 
 accuracy_tracking = pd.DataFrame({"Game Week" : ["GW 1", "GW 2", "GW 3", "GW 4", "GW 5", "GW 6"],
-                                  "Accuracy" : [60, 70, 40, 70, 50, 50],
+                                  "Accuracy" : [60, 70, 40, 70, 50, 40],
                                   "Running Median" : [60, 65, 60, 65, 60, 55]})
 
 #Stadium data
@@ -545,7 +545,7 @@ with tab1:
                       ["Sun 21 Sep 08:30", "Arsenal", "Man City", "1-1",  "Tie", "Away Win"]]
     gw_5_actuals = pd.DataFrame(gw_5_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
 
-    # game week 5
+    # game week 6
     gw_6_actuals_list = [["Sat 27 Sep 04:30","Brentford", "Man Utd", "3-1", "Home Win", "Away Win"],
                       ["Sat 27 Sep 07:00", "Chelsea", "Brighton",  "1-3", "Away Win", "Home Win"],
                       ["Sat 27 Sep 07:00", "Crystal Palace", "Liverpool", "2-1", "Home Win", "Away Win"],
@@ -555,8 +555,21 @@ with tab1:
                       ["Sat 27 Sep 12:00", "Spurs", "Wolves",  "1-1", "Tie", "Home Win"], 
                       ["Sun 28 Sep 06:00", "Aston Villa", "Fulham",  "3-1", "Home Win", "Home Win"],
                       ["Sun 28 Sep 08:30", "Newcastle", "Arsenal",  "1-2", "Away Win", "Away Win"],
-                      ["Mon 29 Sep 12:00", "Everton", "West Ham",  np.nan, np.nan, "Away Win"]]
+                      ["Mon 29 Sep 12:00", "Everton", "West Ham",  "1-1", "Tie", "Away Win"]]
     gw_6_actuals = pd.DataFrame(gw_6_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+    
+    # game week 7
+    gw_7_actuals_list = [["Sat 27 Sep 04:30","Bournwmouth", "Fulham", np.nan, np.nan, np.nan],
+                      ["Fri 03 Oct 12:00", "Leeds", "Spurs",  np.nan, np.nan, np.nan],
+                      ["Sat 04 Oct 07:00", "Arsenal", "West Ham", np.nan, np.nan, np.nan],
+                      ["Sat 04 Oct 07:00", "Man Utd", "Sunderland",  np.nan, np.nan, np.nan],
+                      ["Sat 04 Oct 09:30", "Chelsea", "Liverpool",  np.nan, np.nan, np.nan],
+                      ["Sun 05 Oct 06:00", "Aston Villa", "Burnley",  np.nan, np.nan, np.nan],
+                      ["Sun 05 Oct 06:00", "Everton", "Crystal Palace",  np.nan, np.nan, np.nan], 
+                      ["Sun 05 Oct 06:00", "Newcastle", "Nott'm Forest",  np.nan, np.nan, np.nan],
+                      ["Sun 05 Oct 06:00", "Wolves", "Brighton",  np.nan, np.nan, np.nan],
+                      ["Sun 05 Oct 08:30", "Brentford", "Man City",  np.nan, np.nan, np.nan]]
+    gw_7_actuals = pd.DataFrame(gw_7_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
     
     # Only use to post special notes about matches.  Otherwise keep False.
     include_note = True
@@ -570,7 +583,8 @@ with tab1:
         "game_week3": gw_3_actuals,
         "game_week4": gw_4_actuals, 
         "game_week5": gw_5_actuals,
-        "game_week6": gw_6_actuals
+        "game_week6": gw_6_actuals,
+        "game_week7": gw_7_actuals
     }
     
     # Display Actual information
@@ -613,7 +627,7 @@ with tab1:
     table_3_game_df = table_all_df[table_all_df["gw_num"] == 3] 
     table_4_game_df = table_all_df[table_all_df["gw_num"] == 4] 
     table_5_game_df = table_all_df[table_all_df["Pl"] == 5]
-    
+    table_6_game_df = table_all_df[table_all_df["Pl"] == 6]    
     
     # Mapping for selecte gameweek to correct table dataframe
     table_mapping = {
@@ -622,21 +636,21 @@ with tab1:
         "post game week 3": table_3_game_df,
         "post game week 4": table_4_game_df,
         "post game week 5": table_5_game_df,
-        "post game week 6": table_3_game_df,
-        "post game week 7": table_3_game_df,
-        "post game week 8": table_3_game_df,
-        "post game week 9": table_3_game_df,
-        "post game week 10": table_3_game_df,
-        "post game week 11": table_3_game_df,
-        "post game week 12": table_3_game_df,
-        "post game week 13": table_3_game_df,
-        "post game week 14": table_3_game_df,
-        "post game week 15": table_3_game_df,
-        "post game week 16": table_3_game_df,
-        "post game week 17": table_3_game_df,
-        "post game week 18": table_3_game_df,
-        "post game week 19": table_3_game_df,
-        "post game week 20": table_3_game_df
+        "post game week 6": table_6_game_df,
+        # "post game week 7": table_6_game_df,
+        # "post game week 8": table_6_game_df,
+        # "post game week 9": table_6_game_df,
+        # "post game week 10": table_6_game_df,
+        # "post game week 11": table_3_game_df,
+        # "post game week 12": table_3_game_df,
+        # "post game week 13": table_3_game_df,
+        # "post game week 14": table_3_game_df,
+        # "post game week 15": table_3_game_df,
+        # "post game week 16": table_3_game_df,
+        # "post game week 17": table_3_game_df,
+        # "post game week 18": table_3_game_df,
+        # "post game week 19": table_3_game_df,
+        # "post game week 20": table_3_game_df
     }
     
     # Display pick and dataframe
@@ -651,20 +665,21 @@ with tab1:
          "post game week 4",
          "post game week 5",
          "post game week 6",
-         "post game week 7",
-         "post game week 8",
-         "post game week 9",
-         "post game week 10",
-         "post game week 11",
-         "post game week 12",
-         "post game week 13",
-         "post game week 14",
-         "post game week 15",
-         "post game week 16",
-         "post game week 17",
-         "post game week 18",
-         "post game week 19",
-         "post game week 20"),  key="full_tables")
+         # "post game week 7",
+         # "post game week 8",
+         # "post game week 9",
+         # "post game week 10",
+         # "post game week 11",
+         # "post game week 12",
+         # "post game week 13",
+         # "post game week 14",
+         # "post game week 15",
+         # "post game week 16",
+         # "post game week 17",
+         # "post game week 18",
+         # "post game week 19",
+         # "post game week 20"
+         ),  key="full_tables")
     
     # Get the selected DataFrame and display
     selected_dataframe = table_mapping.get(gw_num_tables)
@@ -1191,7 +1206,7 @@ with tab7:
             top_5_players = all_players_df.nlargest(5, "Gls")[["Player", "name", "Gls", "Team"]]
             
             st.write("**Top 5 Players by Goals**")
-            st.dataframe(top_5_players)
+            st.dataframe(top_5_players, hide_index=True)
             
             ## Bar chart grouped by goals showing count of players
             
@@ -1211,7 +1226,7 @@ with tab7:
             top_5_players = all_players_df.nlargest(5, "Ast")[["Player", "name", "Ast", "Team"]]
             
             st.write("**Top 5 Players by Assists**")
-            st.dataframe(top_5_players)
+            st.dataframe(top_5_players, hide_index=True)
             
             ast_grouping = all_players_df["Ast"].value_counts().reset_index()
             ast_grouping = ast_grouping[ast_grouping["Ast"] != 0]  # Remove rows where Ast is 0
@@ -1230,7 +1245,7 @@ with tab7:
             top_5_players = all_players_ast.nlargest(5, "G+A")[["Player", "name", "G+A", "Team"]]
             
             st.write("**Top 5 Players by Goals Plus Assists**")
-            st.dataframe(top_5_players)
+            st.dataframe(top_5_players, hide_index=True)
         
             gls_ast_grouping = all_players_ast["G+A"].value_counts().reset_index()
             gls_ast_grouping = gls_ast_grouping[gls_ast_grouping["G+A"] != 0]  # Remove rows where Ast is 0
@@ -1248,7 +1263,7 @@ with tab7:
             top_5_players = all_players_df.nsmallest(3, "Age")[["Player", "name", "Age", "Team"]]
             
             st.write("**3 Youngest Players in the League**")
-            st.dataframe(top_5_players)
+            st.dataframe(top_5_players, hide_index=True)
             
             age_grouping = all_players_df["Age"].value_counts().reset_index()
             age_grouping = age_grouping[age_grouping["Age"] != 0]  # Remove rows where Age is 0
@@ -1273,7 +1288,7 @@ with tab7:
             top_10_teams_gf = teams_gf_group.nlargest(10, "GF")
             
             st.write("**Top Teams by Goals For**")
-            st.dataframe(top_10_teams_gf)
+            st.dataframe(top_10_teams_gf, hide_index=True)
             
             fig = px.bar(teams_gf_group, 
                          x="Team", 
@@ -1292,7 +1307,7 @@ with tab7:
             top_10_teams_ga = teams_ga_group.nlargest(10, "GA")
             
             st.write("**Top Teams by Goals Against**")
-            st.dataframe(top_10_teams_ga)
+            st.dataframe(top_10_teams_ga, hide_index=True)
             
             fig = px.bar(teams_ga_group, 
                          x="Team", 
@@ -1311,7 +1326,7 @@ with tab7:
             top_10_teams_gd = teams_gd_group.nlargest(10, "GD")
             
             st.write("**Top Teams by Goals For**")
-            st.dataframe(top_10_teams_gd)
+            st.dataframe(top_10_teams_gd, hide_index=True)
             
             fig = px.bar(teams_gd_group, 
                          x="Team", 
