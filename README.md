@@ -1,6 +1,6 @@
 # PremierLeaguePrediction
 
-View web app here https://premierleagueprediction-v3-wburt2025.streamlit.app
+View web app here https://premierleagueprediction-v6-wburt2025.streamlit.app
 
 On this web app the following functionality is available to you.
 - Predict a match between two teams
