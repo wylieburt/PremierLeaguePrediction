@@ -350,6 +350,11 @@ with tab1:
             
                 st.text("Notes on prediction:")
                 st.text(f"Statistical Logic: {bay_application}")
+                st.text(f"Favoring: {favoring} - \n {team1_name}: {home_win} \n {team2_name}: {away_win}")             
+                
+                st.write(f"{team1_name} was given a weight of {team1_weight}")
+                st.write(f"{team2_name} was given a weight of {team2_weight}")
+
                 st.text("Mean average of each team before any processing:")
                 
                 df_transposed = original_combined_avg_disp.transpose()
@@ -367,6 +372,20 @@ with tab1:
                 styled_df = df_transposed.style.apply(ts.highlight_max, axis=1)
                 st.dataframe(styled_df)
                 #st.dataframe(df_transposed)
+                
+                st.text("Team stats after any statistical logic or favoring in order of importance to prediction")
+                
+                df_transposed = combined_avg.transpose()
+
+                # Set the first row (index 0, which is 'Team') as column names
+                df_transposed.columns = df_transposed.iloc[6]
+               
+                # Drop the 'Team' row since it's now the column names
+                df_transposed = df_transposed.drop(df_transposed.index[6])
+
+                df_transposed["Diff"] = df_transposed[team1_name] - df_transposed[team2_name]
+                styled_df = df_transposed.style.apply(ts.highlight_max, axis=1)
+                st.dataframe(styled_df)
                 
                # Get the statistics (row index)
                 stats = df_transposed.index.tolist()  # ['SoT', 'GF', 'Poss', 'Long_Cmp', 'Succ', 'Blocks']
@@ -430,28 +449,12 @@ with tab1:
                 st.pyplot(fig)
                 
                 st.write(f"The sum of all the differences: {stats_sum_diffs}")
-                st.write(f"A positive sum of differences is a leaning towards {team1_name}")
+                #st.write(f"A positive sum of differences is a leaning towards {team1_name}")
                 
                 st.text("Probabilities before statistical logic or favoring:")
                 #st.dataframe(predict_proba_disp, column_order=("Team", "Win", "Tie", "Loss"), hide_index=True)
-                
-                
-                st.text(f"Favoring: {favoring} - \n {team1_name}: {home_win} \n {team2_name}: {away_win}")             
-                st.text("Team stats after any statistical logic or favoring in order of importance to prediction")
-                
-                df_transposed = combined_avg.transpose()
+            
 
-                # Set the first row (index 0, which is 'Team') as column names
-                df_transposed.columns = df_transposed.iloc[6]
-               
-                # Drop the 'Team' row since it's now the column names
-                df_transposed = df_transposed.drop(df_transposed.index[6])
-
-                df_transposed["Diff"] = df_transposed[team1_name] - df_transposed[team2_name]
-                st.dataframe(df_transposed)
-                
-                #st.dataframe(combined_avg, column_order=("Team", "GF", "Long_Cmp", "Poss", "SoT", "Blocks", "Succ"), hide_index=True)
-                            
         bay_application = ''
         favoring = ''
         
@@ -462,7 +465,8 @@ with tab1:
          "game_week3",
          "game_week4",
          "game_week5",
-         "game_week6"
+         "game_week6",
+         "game_week7"
          ),  key="gw_num_pick")
     
     # Create dataframes for each game week containing Match ID, Actual  Result, Predicted Result
@@ -559,22 +563,22 @@ with tab1:
     gw_6_actuals = pd.DataFrame(gw_6_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
     
     # game week 7
-    gw_7_actuals_list = [["Sat 27 Sep 04:30","Bournwmouth", "Fulham", np.nan, np.nan, np.nan],
-                      ["Fri 03 Oct 12:00", "Leeds", "Spurs",  np.nan, np.nan, np.nan],
-                      ["Sat 04 Oct 07:00", "Arsenal", "West Ham", np.nan, np.nan, np.nan],
-                      ["Sat 04 Oct 07:00", "Man Utd", "Sunderland",  np.nan, np.nan, np.nan],
-                      ["Sat 04 Oct 09:30", "Chelsea", "Liverpool",  np.nan, np.nan, np.nan],
-                      ["Sun 05 Oct 06:00", "Aston Villa", "Burnley",  np.nan, np.nan, np.nan],
-                      ["Sun 05 Oct 06:00", "Everton", "Crystal Palace",  np.nan, np.nan, np.nan], 
-                      ["Sun 05 Oct 06:00", "Newcastle", "Nott'm Forest",  np.nan, np.nan, np.nan],
-                      ["Sun 05 Oct 06:00", "Wolves", "Brighton",  np.nan, np.nan, np.nan],
-                      ["Sun 05 Oct 08:30", "Brentford", "Man City",  np.nan, np.nan, np.nan]]
+    gw_7_actuals_list = [["Sat 27 Sep 04:30","Bournwmouth", "Fulham", np.nan, np.nan, "Tie"],
+                      ["Fri 03 Oct 12:00", "Leeds", "Spurs",  np.nan, np.nan, "Away Win"],
+                      ["Sat 04 Oct 07:00", "Arsenal", "West Ham", np.nan, np.nan, "Home Win"],
+                      ["Sat 04 Oct 07:00", "Man Utd", "Sunderland",  np.nan, np.nan, "Away Win"],
+                      ["Sat 04 Oct 09:30", "Chelsea", "Liverpool",  np.nan, np.nan, "Away Win"],
+                      ["Sun 05 Oct 06:00", "Aston Villa", "Burnley",  np.nan, np.nan, "Home Win"],
+                      ["Sun 05 Oct 06:00", "Everton", "Crystal Palace",  np.nan, np.nan, "Tie"], 
+                      ["Sun 05 Oct 06:00", "Newcastle", "Nott'm Forest",  np.nan, np.nan, "Home Win"],
+                      ["Sun 05 Oct 06:00", "Wolves", "Brighton",  np.nan, np.nan, "Away Win"],
+                      ["Sun 05 Oct 08:30", "Brentford", "Man City",  np.nan, np.nan, "Away Win"]]
     gw_7_actuals = pd.DataFrame(gw_7_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
     
     # Only use to post special notes about matches.  Otherwise keep False.
     include_note = True
-    gw_note = "game_week6"
-    note = "The Nott'm Forest - Sunderland match will be close with Sunderland possibly pulling out a Win.  \n Prediction is a Tie, but Sunderland is playing surprisingly well.  \n Sunderland currently has a presence on the table with a 2-2-1 record, 6 GF and only 4 GA \n while Forest has a 1-2-2 record, 5 GF and 9 GA"
+    gw_note = "game_week7"
+    note = "The Manchester United V Sunderland match will be close with Sunderland possibly pulling out a Win.  \n Prediction is a Home Win, but I am over rulling and predicting a Sunderland Win."
 
     # mapping of game selection text to the correct dataframe
     actuals_week_mapping = {
@@ -607,6 +611,9 @@ with tab1:
             if (include_note and gw_note == gw_num_pick):
                 st.text(f"***Special Note on Predictions:*** \n For {gw_num_pick}: {note}")
             st.text(f"Predicted correct accuracy: {num_right} of {total} played - {accuracy:.0%}")
+            st.write("**Accuracy Tracking**")
+            accuracy_tracking_chart = accuracy_tracking.set_index("Game Week")
+            st.line_chart(accuracy_tracking_chart)
         else:
             styled_df = selected_dataframe.style.apply(ts.highlight_multiple_conditions, axis=1)        
             st.dataframe(styled_df, column_order= ("Date","Home","Away", "Score", "Predicted"), hide_index=True)
@@ -636,7 +643,7 @@ with tab1:
         "post game week 3": table_3_game_df,
         "post game week 4": table_4_game_df,
         "post game week 5": table_5_game_df,
-        "post game week 6": table_6_game_df,
+        "post game week 6": table_6_game_df
         # "post game week 7": table_6_game_df,
         # "post game week 8": table_6_game_df,
         # "post game week 9": table_6_game_df,
@@ -658,7 +665,7 @@ with tab1:
     st.text("Note: Table is updated on Sunday evening of each game week.")
 
     gw_num_tables = st.selectbox(
-        "Pick a game week:",
+        "Pick a game week for the Table:",
         ("post game week 1",
          "post game week 2",
          "post game week 3",
@@ -681,17 +688,35 @@ with tab1:
          # "post game week 20"
          ),  key="full_tables")
     
+    #Compare teams on the table    
+    options = st.multiselect(
+    "Optionally, after selecting the game week for the table, you may select teams to compare from that table:",
+    ["Arsenal", "Aston Villa", 
+     "AFC Bournemouth", "Brentford","Burnley", "Brighton & Hove Albion",
+     "Chelsea", "Crystal Palace",
+     "Everton",
+     "Fulham",
+     "Leeds United","Liverpool",
+     "Manchester City", "Manchester United",
+     "Newcastle United", "Nottingham Forest", 
+     "Sunderland", "Tottenham Hotspur", 
+     "West Ham United", "Wolverhampton Wonderers"],
+    )
+    
     # Get the selected DataFrame and display
     selected_dataframe = table_mapping.get(gw_num_tables)
     if selected_dataframe is not None:
         st.dataframe(selected_dataframe, column_order=("Pos","Team","Pl","W","D","L","GF","GA","GD","Pts"), hide_index=True)
+        table_comp_df = selected_dataframe.loc[selected_dataframe["Team"].isin(options)]
 
     else:
         st.write(f"DataFrame for {gw_num_tables} not yet implemented")
-        
-
+    
+    st.write("__Team Table Comparison__")
+    st.dataframe(table_comp_df, column_order=("Pos","Team","Pl","W","D","L","GF","GA","GD","Pts"), hide_index=True)
+                        
 ################################################
-# Contents of tab2 - Full Table display
+# Contents of tab2 - Data and Model
 ################################################
 
       
@@ -765,11 +790,7 @@ with tab2:
     st.text("Model: Random Forest Classifer")
     
     
-    st.subheader("Model Performance")
-    
-    st.line_chart(accuracy_tracking, x="Game Week", color=["#0000ff", "#66ff33"])
-    
-    st.subheader("Model Description")
+
     
 
     # Create DataFrame using dictionary
