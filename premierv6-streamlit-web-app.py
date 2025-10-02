@@ -32,16 +32,23 @@ import Data.stadiums_merge as sm
 ########################
 
 # 20-26 seaons
-clf_reduced = joblib.load('Models/premier_random_forest_20_26_prediction.joblib')
-clf_reduced_name = 'premier_random_forest_20_26'
-data_for_avg = joblib.load('Data/premier_random_forest_20_26_prediction_data.joblib')
+# clf_reduced = joblib.load('Models/premier_random_forest_20_26_prediction.joblib')
+# clf_reduced_name = 'premier_random_forest_20_26'
+# data_for_avg = joblib.load('Data/premier_random_forest_20_26_prediction_data.joblib')
+
+# Added data from Sept 2025
+clf_reduced = joblib.load('Models/premier_random_forest_2020_20250931_prediction.joblib')
+clf_reduced_name = 'premier_random_forest_2020_20250931'
+data_for_avg = joblib.load('Data/premier_random_forest_2020_20250931_prediction_data.joblib')
 
 #All matches with results only
 
 win_count_df = data_for_avg.groupby("Team")["Result"].value_counts().reset_index()
 
 # All matches with data, team, opp, and result
-all_data_df = pd.read_csv("Data/match_data_20_26.csv")
+#all_data_df = pd.read_csv("Data/match_data_20_26.csv")
+# Grab latest data
+all_data_df = pd.read_csv("Data/match_data_2020_20250931.csv")
 all_data_df['Result'] = all_data_df['Result'].str.split(' ').str[0]
 all_unique = all_data_df[all_data_df['Team'] < all_data_df['Opp']]
 analysis_df = all_unique
@@ -82,9 +89,12 @@ stadium_data = pd.read_csv("Data/stadiums.csv")
 all_df = pd.DataFrame(all_data_df["Team"].unique(), columns = ["Team"])
 idx = all_df[all_df['Team'] == "Nott'ham Forest"].index
 all_df.loc[idx, 'Team'] = "Nottingham Forest"
+idx = all_df[all_df['Team'] == "Newcastle Utd"].index
+all_df_for_Stadium_merge = all_df.copy()
+all_df_for_Stadium_merge.loc[idx, 'Team'] = "Newcastle United"
 
-stadiums_pl = pd.merge(all_df, stadium_data, how="left", on="Team")
-stadiums_pl.info()
+stadiums_pl = pd.merge(all_df_for_Stadium_merge, stadium_data, how="left", on="Team")
+#stadiums_pl.info()
 
 # Player data used in tab6 - Players
 all_players_df = pd.read_csv("Data/players_25_26.csv")
@@ -121,6 +131,12 @@ all_players_df.fillna(value = 0, inplace=True)
 countries_df = pd.read_csv("Data/countries.csv")
 
 all_players_df = all_players_df.merge(countries_df[['country', 'latitude', 'longitude', 'name']], how="left", left_on='Nation', right_on='country')
+
+# Match attendance data
+attendance_df = pd.read_csv("Data/attendance_tracking_20250931.csv")
+
+# Merge in stadium data with attendance
+attendance_df = attendance_df.merge(stadiums_pl, how="left", on="Team")
 
 
 tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["Make Prediction", "Data and Model", "About Project", "Analytics", "Maps", "Players", "Leader Boards"])
@@ -341,6 +357,7 @@ with tab1:
             with st.sidebar:
                 st.sidebar.empty()
                 st.header("Model predictions of the selected match")
+                st.write(f"Using {clf_reduced_name}")
                 st.subheader(f"Home Win: {home_win_prob}")
                 st.subheader(f"Tie Prob: {tie_prob}")    
                 st.subheader(f"Away Win: {away_win_prob}")
@@ -1218,7 +1235,7 @@ with tab6:
         
 with tab7:
     
-    player_tab, team_tab = st.tabs(["Player", "Team"])
+    player_tab, team_tab, fans_tab = st.tabs(["Player", "Team", "Fans"])
     
     
     with player_tab:
@@ -1398,7 +1415,75 @@ with tab7:
                          title="Team Distribution by GD")
             st.plotly_chart(fig)
         
+    with fans_tab:
+        
 
+        # Calculate utilization rate
+        attendance_df['Utilization'] = (attendance_df['Attendance'] / attendance_df['Capacity']) * 100
+        
+        # Plot 1: Average Utilization Rate by Team
+        avg_utilization = attendance_df.groupby('Team')['Utilization'].mean().sort_values(ascending=False)
+        
+        fig = px.bar(avg_utilization, 
+                     x=avg_utilization.index, 
+                     y=avg_utilization.values,
+                     title='Average Stadium Utilization Rate by Team',
+                     labels={'x': 'Team', 'y': 'Utilization (%)'},
+                     color_discrete_sequence=['steelblue'])
+        
+        fig.update_layout(
+            title_font_size=14,
+            xaxis_tickangle=-45,
+            yaxis_gridcolor='rgba(0,0,0,0.3)',
+            height=600,
+            width=1200
+)
+        
+        st.plotly_chart(fig)
+        
+        # Plot 2: Attendance vs Capacity Scatter
+        # plt.figure(figsize=(10, 6))
+        # plt.scatter(attendance_df['Capacity'], attendance_df['Attendance'], alpha=0.6, s=50)
+        # plt.title('Attendance vs Stadium Capacity', fontsize=14, fontweight='bold')
+        # plt.xlabel('Stadium Capacity')
+        # plt.ylabel('Match Attendance')
+        # plt.grid(alpha=0.3)
+        
+        # # Add diagonal line showing 100% utilization
+        # max_val = max(attendance_df['Capacity'].max(), attendance_df['Attendance'].max())
+        # plt.plot([0, max_val], [0, max_val], 'r--', alpha=0.5, label='100% Capacity')
+        # plt.legend()
+        # plt.tight_layout()
+        # plt.show()
+        
+        # # Highest attendanded match
+        max_attend_match = attendance_df.loc[attendance_df['Attendance'].idxmax()].reset_index()
+        
+        df_transposed = max_attend_match.transpose()
+
+
+        # Set the first row (index 0, which is 'Team') as column names
+        df_transposed.columns = df_transposed.iloc[0]
+       
+        # Drop the 'Team' row since it's now the column names
+        df_transposed = df_transposed.drop(df_transposed.index[0])
+
+        st.write("__2025 Match with the highest attendance:__")
+        # team = df_transposed.iloc[0,0]
+        # opponent = df_transposed.iloc[0,3]
+        # date = df_transposed.iloc[0,1]
+        # attendance = df_transposed.iloc[0,4]
+        # capacity = df_transposed.iloc[0,6]
+        # utilization = df_transposed.iloc[0,-1]
+        # stadium = df_transposed.iloc[0,5]
+        
+        # st.write(f"{team} V. {opponent} on {date} at {stadium} with attendance of {attendance} which utilized the stadium at {utilization}.")
+        st.dataframe(df_transposed, column_order=["Date", "Team", "Opponent", "Attendance", "Capacity", "Utilization"], hide_index=True)
+        
+        # Bonus: Print some stats
+        st.write(f"Average utilization across all matches: {attendance_df['Utilization'].mean():.1f}%")
+        st.write(f"\nTop 10 teams by utilization:")
+        st.write(avg_utilization.head(10))
         
         
         
