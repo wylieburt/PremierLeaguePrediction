@@ -1422,11 +1422,49 @@ with tab7:
         attendance_df['Utilization'] = (attendance_df['Attendance'] / attendance_df['Capacity']) * 100
         
         # Plot 1: Average Utilization Rate by Team
-        avg_utilization = attendance_df.groupby('Team')['Utilization'].mean().sort_values(ascending=False)
+        # Get average utilization by team
+        avg_utilization = attendance_df.groupby('Team')['Utilization'].mean().sort_values(ascending=False).reset_index()
+        
+        # merge avg util to stadiums
+        stadiums_pl = stadiums_pl.merge(avg_utilization[["Team", "Utilization"]], how="left", on="Team")
+        
+        #get table data
+            
+        # create a dataframe for each game week from table_all_df and selecting  on gw_num 
+        table_all_df = pd.read_csv("Data/tables_all.csv")
+
+        table_6_game_df = table_all_df[table_all_df["Pl"] == 6] 
+        
+        idx = table_6_game_df[table_6_game_df['Team'] == "Tottenham Hotspur"].index
+        table_6_game_df.loc[idx, 'Team'] = "Tottenham"
+        
+        idx = table_6_game_df[table_6_game_df['Team'] == "AFC Bournemouth"].index
+        table_6_game_df.loc[idx, 'Team'] = "Bournemouth"
+        
+        idx = table_6_game_df[table_6_game_df['Team'] == "Brighton & Hove Albion"].index
+        table_6_game_df.loc[idx, 'Team'] = "Brighton"
+        
+        idx = table_6_game_df[table_6_game_df['Team'] == "Manchester United"].index
+        table_6_game_df.loc[idx, 'Team'] = "Manchester Utd"
+        
+        idx = table_6_game_df[table_6_game_df['Team'] == "West Ham United"].index
+        table_6_game_df.loc[idx, 'Team'] = "West Ham"
+        
+        idx = table_6_game_df[table_6_game_df['Team'] == "Wolverhampton Wanderers"].index
+        table_6_game_df.loc[idx, 'Team'] = "Wolves"
+        
+        #merge to stadiums
+        stadiums_pl = stadiums_pl.merge(table_6_game_df[["Team", "Pos"]], how="left", on="Team")
+        
+        # remove teams that are not on the table
+        stadiums_pl = stadiums_pl.dropna(subset=['Pos'])
+        
+        # Display stadium_pl
+        st.dataframe(stadiums_pl, column_order=["Pos", "Team", "Name", "Attendance", "Capacity", "Utilization"], hide_index=True)
         
         fig = px.bar(avg_utilization, 
-                     x=avg_utilization.index, 
-                     y=avg_utilization.values,
+                     x="Team", 
+                     y="Utilization",
                      title='Average Stadium Utilization Rate by Team',
                      labels={'x': 'Team', 'y': 'Utilization (%)'},
                      color_discrete_sequence=['steelblue'])
@@ -1481,9 +1519,9 @@ with tab7:
         st.dataframe(df_transposed, column_order=["Date", "Team", "Opponent", "Attendance", "Capacity", "Utilization"], hide_index=True)
         
         # Bonus: Print some stats
-        st.write(f"Average utilization across all matches: {attendance_df['Utilization'].mean():.1f}%")
-        st.write(f"\nTop 10 teams by utilization:")
-        st.write(avg_utilization.head(10))
+        # st.write(f"Average utilization across all matches: {attendance_df['Utilization'].mean():.1f}%")
+        # st.write(f"\nTop 10 teams by utilization:")
+        # st.write(avg_utilization.head(10))
         
         
         
