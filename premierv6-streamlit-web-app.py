@@ -78,9 +78,9 @@ enhanced_results_summary_df = preproc.enhanced_results_summary(match_result_look
 
 merged_df = pd.merge(data_for_avg, enhanced_results_summary_df, how = "inner", on = "Team")
 
-accuracy_tracking = pd.DataFrame({"Game Week" : ["GW 1", "GW 2", "GW 3", "GW 4", "GW 5", "GW 6"],
-                                  "Accuracy" : [60, 70, 40, 70, 50, 40],
-                                  "Running Median" : [60, 65, 60, 65, 60, 55]})
+accuracy_tracking = pd.DataFrame({"Game Week" : ["GW 1", "GW 2", "GW 3", "GW 4", "GW 5", "GW 6", "GW 7"],
+                                  "Accuracy" : [60, 70, 40, 70, 50, 40, 60],
+                                  "Running Median" : [60, 65, 60, 65, 60, 55, 60]})
 
 #Stadium data
 
@@ -155,7 +155,7 @@ with tab1:
     st.image("Images/crystal_palace_stadium.jpg")
 
     # Add title and references
-    st.title("Premier League Match Prediction")
+    st.title("Premier League Match Predictions")
     st.text("Data Science and Machine Learning by Wylie")
     st.text("Inspired by David Burt, Camille Burt, and Maddie Burt")
     st.text("Data provided by FBref.com")
@@ -482,7 +482,8 @@ with tab1:
          "game_week4",
          "game_week5",
          "game_week6",
-         "game_week7"
+         "game_week7",
+         "game_week8"
          ),  key="gw_num_pick")
     
     # Create dataframes for each game week containing Match ID, Actual  Result, Predicted Result
@@ -579,20 +580,33 @@ with tab1:
     gw_6_actuals = pd.DataFrame(gw_6_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
     
     # game week 7
-    gw_7_actuals_list = [["Sat 27 Sep 04:30","Bournwmouth", "Fulham", np.nan, np.nan, "Tie"],
-                      ["Fri 03 Oct 12:00", "Leeds", "Spurs",  np.nan, np.nan, "Away Win"],
-                      ["Sat 04 Oct 07:00", "Arsenal", "West Ham", np.nan, np.nan, "Home Win"],
-                      ["Sat 04 Oct 07:00", "Man Utd", "Sunderland",  np.nan, np.nan, "Away Win"],
-                      ["Sat 04 Oct 09:30", "Chelsea", "Liverpool",  np.nan, np.nan, "Away Win"],
-                      ["Sun 05 Oct 06:00", "Aston Villa", "Burnley",  np.nan, np.nan, "Home Win"],
-                      ["Sun 05 Oct 06:00", "Everton", "Crystal Palace",  np.nan, np.nan, "Tie"], 
-                      ["Sun 05 Oct 06:00", "Newcastle", "Nott'm Forest",  np.nan, np.nan, "Home Win"],
-                      ["Sun 05 Oct 06:00", "Wolves", "Brighton",  np.nan, np.nan, "Away Win"],
-                      ["Sun 05 Oct 08:30", "Brentford", "Man City",  np.nan, np.nan, "Away Win"]]
+    gw_7_actuals_list = [["Fri 03 Oct 04:30","Bournwmouth", "Fulham", "3-1", "Home Win", "Tie"],
+                      ["Sat 04 Oct 12:00", "Leeds", "Spurs",  "1-2", "Away Win", "Away Win"],
+                      ["Sat 04 Oct 07:00", "Arsenal", "West Ham", "2-0", "Home Win", "Home Win"],
+                      ["Sat 04 Oct 07:00", "Man Utd", "Sunderland",  "2-0", "Home Win", "Home Win"],
+                      ["Sat 04 Oct 09:30", "Chelsea", "Liverpool",  "2-1", "Home Win", "Away Win"],
+                      ["Sun 05 Oct 06:00", "Aston Villa", "Burnley",  "2-1", "Home Win", "Home Win"],
+                      ["Sun 05 Oct 06:00", "Everton", "Crystal Palace",  "2-1", "Home Win", "Tie"], 
+                      ["Sun 05 Oct 06:00", "Newcastle", "Nott'm Forest",  "2-0", "Home Win", "Home Win"],
+                      ["Sun 05 Oct 06:00", "Wolves", "Brighton",  "1-1", "Tie", "Away Win"],
+                      ["Sun 05 Oct 08:30", "Brentford", "Man City",  "0-1", "Away Win", "Away Win"]]
     gw_7_actuals = pd.DataFrame(gw_7_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
-    
+
+    # game week 7
+    gw_8_actuals_list = [["Sat 18 Oct 04:30","Nott'ham Forest", "Chelsea", np.nan, np.nan, np.nan],
+                      ["Sat 18 Oct 07:00", "Brighton", "Newcastle",  np.nan, np.nan, np.nan],
+                      ["Sat 18 Oct 07:00", "Burnley", "Leeds", np.nan, np.nan, np.nan],
+                      ["Sat 18 Oct 07:00", "Crystal Palace", "Bournemouth",  np.nan, np.nan, np.nan],
+                      ["Sat 18 Oct 07:00", "Man City", "Everton",  np.nan, np.nan, np.nan],
+                      ["Sat 18 Oct 07:00", "Sunderland", "Wolves",  np.nan, np.nan, np.nan],
+                      ["Sat 18 Oct 09:30", "Fulham", "Arsenal",  np.nan, np.nan, np.nan], 
+                      ["Sun 19 Oct 06:00", "Spurs", "Aston Villa",  np.nan, np.nan, np.nan],
+                      ["Sun 19 Oct 08:30", "Liverpool", "Man Utd",  np.nan, np.nan, np.nan],
+                      ["Mon 20 Oct 12:00", "West Ham", "Brentoford",  np.nan, np.nan, np.nan]]
+    gw_8_actuals = pd.DataFrame(gw_8_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+        
     # Only use to post special notes about matches.  Otherwise keep False.
-    include_note = True
+    include_note = False
     gw_note = "game_week7"
     note = "The Manchester United V Sunderland match will be close with Sunderland possibly pulling out a Win.  \n Prediction is a Home Win, but I am over rulling and predicting a Sunderland Win."
 
@@ -604,7 +618,8 @@ with tab1:
         "game_week4": gw_4_actuals, 
         "game_week5": gw_5_actuals,
         "game_week6": gw_6_actuals,
-        "game_week7": gw_7_actuals
+        "game_week7": gw_7_actuals,
+        "game_week8": gw_8_actuals
     }
     
     # Display Actual information
@@ -651,6 +666,7 @@ with tab1:
     table_4_game_df = table_all_df[table_all_df["gw_num"] == 4] 
     table_5_game_df = table_all_df[table_all_df["Pl"] == 5]
     table_6_game_df = table_all_df[table_all_df["Pl"] == 6]    
+    table_7_game_df = table_all_df[table_all_df["Pl"] == 7]     
     
     # Mapping for selecte gameweek to correct table dataframe
     table_mapping = {
@@ -659,8 +675,8 @@ with tab1:
         "post game week 3": table_3_game_df,
         "post game week 4": table_4_game_df,
         "post game week 5": table_5_game_df,
-        "post game week 6": table_6_game_df
-        # "post game week 7": table_6_game_df,
+        "post game week 6": table_6_game_df,
+        "post game week 7": table_7_game_df,
         # "post game week 8": table_6_game_df,
         # "post game week 9": table_6_game_df,
         # "post game week 10": table_6_game_df,
@@ -688,7 +704,7 @@ with tab1:
          "post game week 4",
          "post game week 5",
          "post game week 6",
-         # "post game week 7",
+         "post game week 7",
          # "post game week 8",
          # "post game week 9",
          # "post game week 10",
@@ -1460,7 +1476,33 @@ with tab7:
         stadiums_pl = stadiums_pl.dropna(subset=['Pos'])
         
         # Display stadium_pl
-        st.dataframe(stadiums_pl, column_order=["Pos", "Team", "Name", "Attendance", "Capacity", "Utilization"], hide_index=True)
+        st.write("All teams in 2025/26 season, capacity, average utilization of capacity")
+        st.dataframe(stadiums_pl, column_order=["Pos", "Team", "Name", "Attendance", "Capacity", "Utilization"], column_config={        
+            "Pos": st.column_config.TextColumn(
+                "Position",
+                help="Latest table ranking"
+            ),
+            "Team": st.column_config.TextColumn(
+                "Team", 
+                help="Current team the player belongs to"
+            ),
+            "Name": st.column_config.TextColumn(
+                "Stadium", 
+                help="Name of the stadium"
+            ),
+            "Attendance": st.column_config.TextColumn(
+                "Avg. Addenance", 
+                help="The average of all matches played at this stadium so far in 20225"
+            ),
+            "Capacity": st.column_config.TextColumn(
+                "Capacity", 
+                help="The current official capacity of the stadium"
+            ),
+            "Utilization": st.column_config.TextColumn(
+                "Percent Utilization", 
+                help="Average percent utilization of allowed attendance"
+            ),
+        },hide_index=True)
         
         fig = px.bar(avg_utilization, 
                      x="Team", 
@@ -1475,10 +1517,29 @@ with tab7:
             yaxis_gridcolor='rgba(0,0,0,0.3)',
             height=600,
             width=1200
-)
+            )
         
         st.plotly_chart(fig)
         
+        # Plot 5: Top/Bottom Attendance
+        import plotly.graph_objects as go
+        import plotly.express as px
+        
+        avg_attendance = attendance_df.groupby('Team')['Attendance'].mean().sort_values(ascending=True)
+        
+        fig = go.Figure(data=[
+            go.Bar(x=avg_attendance.values, y=avg_attendance.index, orientation='h',
+                   marker_color='steelblue')
+        ])
+        fig.update_layout(
+            title='Average Attendance by Team',
+            xaxis_title='Average Attendance',
+            yaxis_title='Team',
+            height=600,
+            showlegend=False
+        )
+
+        st.plotly_chart(fig)
         # Plot 2: Attendance vs Capacity Scatter
         # plt.figure(figsize=(10, 6))
         # plt.scatter(attendance_df['Capacity'], attendance_df['Attendance'], alpha=0.6, s=50)
@@ -1516,14 +1577,110 @@ with tab7:
         # stadium = df_transposed.iloc[0,5]
         
         # st.write(f"{team} V. {opponent} on {date} at {stadium} with attendance of {attendance} which utilized the stadium at {utilization}.")
-        st.dataframe(df_transposed, column_order=["Date", "Team", "Opponent", "Attendance", "Capacity", "Utilization"], hide_index=True)
+        st.dataframe(df_transposed, column_order=["Date", "Team", "Opponent", "Attendance", "Capacity", "Utilization"],  column_config={        
+            "Pos": st.column_config.TextColumn(
+                "Position",
+                help="Latest table ranking"
+            ),
+            "Date": st.column_config.TextColumn(
+                "Date (DD/MM/YYYY)", 
+                help="Date of the match"
+            ),
+            "Team": st.column_config.TextColumn(
+                "Home TEam", 
+                help="Home Team" 
+            ),
+            "Opponent": st.column_config.TextColumn(
+                "Away Team", 
+                help="Away Team"
+            ),
+            "Attendance": st.column_config.TextColumn(
+                "Avg. Addenance", 
+                help="The average of all matches played at this stadium so far in 20225"
+            ),
+            "Capacity": st.column_config.TextColumn(
+                "Capacity", 
+                help="The current official capacity of the stadium"
+            ),
+            "Utilization": st.column_config.TextColumn(
+                "Percent Utilization", 
+                help="Average percent utilization of allowed attendance"
+            ),
+        },hide_index=True)
         
         # Bonus: Print some stats
         # st.write(f"Average utilization across all matches: {attendance_df['Utilization'].mean():.1f}%")
         # st.write(f"\nTop 10 teams by utilization:")
         # st.write(avg_utilization.head(10))
         
+        import plotly.graph_objects as go
+        import plotly.express as px
         
+  
+        
+        # Plot 6: Home vs Away Attendance
+        # Home matches: Team appears in 'Team' column
+        home_attendance = attendance_df.groupby('Team')['Attendance'].mean()
+        
+        # Away matches: Team appears in 'Opponent' column
+        away_attendance = attendance_df.groupby('Opponent')['Attendance'].mean()
+        
+        # Combine both (only for teams that appear in both)
+        comparison = pd.DataFrame({
+            'Home': home_attendance,
+            'Away': away_attendance
+        }).dropna()
+        
+        fig = go.Figure(data=[
+            go.Bar(name='Home', x=comparison.index, y=comparison['Home'], 
+                   marker_color='steelblue'),
+            go.Bar(name='Away', x=comparison.index, y=comparison['Away'], 
+                   marker_color='coral')
+        ])
+        fig.update_layout(
+            title='Average Attendance: Home vs Away',
+            xaxis_title='Team',
+            yaxis_title='Average Attendance',
+            barmode='group',
+            height=500,
+            xaxis_tickangle=-45
+        )
+        st.plotly_chart(fig)
+        
+        # Plot 7: Big vs Small Clubs (by capacity)
+        # Define size categories based on capacity
+        attendance_df['Stadium_Size'] = pd.cut(attendance_df['Capacity'], 
+                                                bins=[0, 30000, 50000, 100000],
+                                                labels=['Small (<30k)', 'Medium (30-50k)', 'Large (>50k)'])
+        
+        size_utilization = attendance_df.groupby('Stadium_Size')['Utilization'].mean()
+        
+        fig = go.Figure(data=[
+            go.Bar(x=size_utilization.index, y=size_utilization.values,
+                   marker_color=['#3b82f6', '#8b5cf6', '#ec4899'])
+        ])
+        fig.update_layout(
+            title='Stadium Utilization by Stadium Size',
+            xaxis_title='Stadium Size',
+            yaxis_title='Average Utilization (%)',
+            height=500,
+            showlegend=False
+        )
+        st.plotly_chart(fig)
+        
+        # Print some insights
+        st.subheader("=== Team Comparison Insights ===")
+        st.write(f"\n__Highest average attendance:__ {avg_attendance.idxmax()} ({avg_attendance.max():,.0f})")
+        st.write(f"__Lowest average attendance:__ {avg_attendance.idxmin()} ({avg_attendance.min():,.0f})")
+        
+        st.subheader("\n=== Home Advantage ===")
+        comparison['Difference'] = comparison['Home'] - comparison['Away']
+        st.write(f"\n__Biggest home crowd advantage:__ {comparison['Difference'].idxmax()}")
+        st.write(f"  Home: {comparison.loc[comparison['Difference'].idxmax(), 'Home']:,.0f}")
+        st.write(f"  Away: {comparison.loc[comparison['Difference'].idxmax(), 'Away']:,.0f}")
+        
+        st.subheader("\n=== Stadium Size Analysis ===")
+        st.write(size_utilization)
         
         
         
