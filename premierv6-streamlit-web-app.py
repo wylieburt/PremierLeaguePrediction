@@ -187,7 +187,7 @@ with st.spinner("Wait for it...", show_time=True):
     ######################
     
     # Load coach data
-    coaches_df = pd.read_csv("Data/Coaches.csv")
+    coaches_df = pd.read_csv("Data/coaches.csv")
     #coaches_df.isna().sum()
     coaches_df.drop([" Ref"], axis= 1, inplace=True)
     
