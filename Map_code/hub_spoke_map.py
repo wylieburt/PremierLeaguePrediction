@@ -2,7 +2,7 @@ import streamlit as st
 import pydeck as pdk
 import pandas as pd
 
-def create_hub_spoke_map(origin=None, destinations=None):
+def create_hub_spoke_map(origin=None, destinations=None, coaches=False):
     """Create a hub and spoke map visualization"""
     
     # Sample data - replace with your own
@@ -77,7 +77,7 @@ def create_hub_spoke_map(origin=None, destinations=None):
             ),
         ],
         tooltip={
-            'html': '<b>{source_name}</b> → <b>{target_name}</b>',
+            'html': '<b>{target_name}</b>',
             'style': {
                 'backgroundColor': 'steelblue',
                 'color': 'white'
