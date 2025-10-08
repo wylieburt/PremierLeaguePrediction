@@ -4,7 +4,6 @@
 import streamlit as st
 import time
 with st.spinner("Wait for it...", show_time=True):
-    time.sleep(5)
    
     import pandas as pd
     import numpy as np
@@ -47,7 +46,33 @@ with st.spinner("Wait for it...", show_time=True):
     #01-Oct-2025: Added data from Sept 2025
     ###############################################################################
     
-    clf_reduced = joblib.load('Models/premier_random_forest_2020_20250931_prediction.joblib')
+    # For more increased performance and to reduce massice data processing on every
+    # user interaction, create these funtions to use streamlit cacheing.
+    
+    @st.cache_resource
+    def load_model():
+        return joblib.load('Models/premier_random_forest_2020_20250931_prediction.joblib')
+    
+    @st.cache_data
+    def load_match_data():
+        df = pd.read_csv("Data/match_data_2020_20250931.csv")
+        df['Result'] = df['Result'].str.split(' ').str[0]
+        return df
+    
+    @st.cache_data
+    def load_player_data():
+        df = pd.read_csv("Data/players_25_26.csv")
+        # ... all processing
+        return df
+
+    # Then in main code:
+    clf_reduced = load_model()
+    all_data_df = load_match_data()
+    all_players_df = load_player_data()
+    
+    
+    
+    #clf_reduced = joblib.load('Models/premier_random_forest_2020_20250931_prediction.joblib')
     clf_reduced_name = 'premier_random_forest_2020_20250931'
     data_for_avg = joblib.load('Data/premier_random_forest_2020_20250931_prediction_data.joblib')
     
@@ -56,7 +81,7 @@ with st.spinner("Wait for it...", show_time=True):
     ########################
    
     # All matches with data, team, opp, and result
-    all_data_df = pd.read_csv("Data/match_data_2020_20250931.csv")
+    #all_data_df = pd.read_csv("Data/match_data_2020_20250931.csv")
     all_data_df['Result'] = all_data_df['Result'].str.split(' ').str[0]
     all_unique = all_data_df[all_data_df['Team'] < all_data_df['Opp']]
     analysis_df = all_unique
@@ -81,7 +106,6 @@ with st.spinner("Wait for it...", show_time=True):
     ########################
     # Timeseries data for the data info tab
     timeseries_df = analysis_df.groupby(["Date", "Result"])["Result"].value_counts().reset_index()
-    print(timeseries_df.head())
     timeseries_df['Date'] = pd.to_datetime(timeseries_df['Date'])
     
     # Extract date components
@@ -138,7 +162,7 @@ with st.spinner("Wait for it...", show_time=True):
     ####################################
 
     # Load and clean up
-    all_players_df = pd.read_csv("Data/players_25_26.csv")
+    #all_players_df = pd.read_csv("Data/players_25_26.csv")
     all_players_df.drop(["Season", "Comp", "-9999"], axis=1, inplace=True)
     
     country_codes_df = pd.read_csv("Data/world.csv")
@@ -991,12 +1015,7 @@ with st.spinner("Wait for it...", show_time=True):
     
     with tab4:
         st.session_state.active_tab = "Tab 4"
-        st.sidebar.empty()
-        football_df = timeseries_df.reset_index()
-        football_df['Date'] = pd.to_datetime(football_df['Date'])
-        streak_fig, momentum_fig, predictive_fig, stats_fig, cyclical_fig, performance_fig, volatility_fig, scenario_fig = aa.advanced_football_analytics_suite(football_df)
-           
-        st.pyplot(streak_fig)
+        st.write("Under construction")
     
     
     ################################################
@@ -1912,7 +1931,6 @@ with st.spinner("Wait for it...", show_time=True):
             format_func=lambda x: f"{x} ({multi_team_coaches[x]} teams)"
         )
         with st.spinner("Wait for it...", show_time=True):
-            time.sleep(5)
         
             # Filter data for the selected coach
             coach_journey = coaches_df[coaches_df['Name'] == selected_coach].copy()
