@@ -1,11 +1,11 @@
+###################
 # import libraries
-
+###################
 import streamlit as st
 import time
 with st.spinner("Wait for it...", show_time=True):
     time.sleep(5)
-
-    
+   
     import pandas as pd
     import numpy as np
     import matplotlib.pyplot as plt
@@ -16,14 +16,13 @@ with st.spinner("Wait for it...", show_time=True):
     import joblib
     import pydeck as pdk
     import plotly.express as px
-
-    
+  
     # Machine learning packages
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.utils import shuffle
     from sklearn.model_selection import train_test_split
     
-    # Local libraries
+    # Local libraries (not required to listed in requirements.txt on github)
     import Analytics.Advanced_Analytics as aa
     import Plot.timeseries_plots as tp
     import Plot.performance_plots as pp
@@ -37,24 +36,26 @@ with st.spinner("Wait for it...", show_time=True):
 ########################
 # Import model and data
 ########################
-
-# 20-26 seaons
-# clf_reduced = joblib.load('Models/premier_random_forest_20_26_prediction.joblib')
-# clf_reduced_name = 'premier_random_forest_20_26'
-# data_for_avg = joblib.load('Data/premier_random_forest_20_26_prediction_data.joblib')
-
-    # Added data from Sept 2025
+    
+    # set pandas display option
+    pd.set_option('display.max_columns', None)
+    
+    ###############################################################################
+    #Joblib files were created from premier_league_new_data_processing.py in the main
+    #app directory of Premier_prediction.
+    #
+    #01-Oct-2025: Added data from Sept 2025
+    ###############################################################################
+    
     clf_reduced = joblib.load('Models/premier_random_forest_2020_20250931_prediction.joblib')
     clf_reduced_name = 'premier_random_forest_2020_20250931'
     data_for_avg = joblib.load('Data/premier_random_forest_2020_20250931_prediction_data.joblib')
     
-    #All matches with results only
-    
-    win_count_df = data_for_avg.groupby("Team")["Result"].value_counts().reset_index()
-    
+    ########################
+    # Import match data
+    ########################
+   
     # All matches with data, team, opp, and result
-    #all_data_df = pd.read_csv("Data/match_data_20_26.csv")
-    # Grab latest data
     all_data_df = pd.read_csv("Data/match_data_2020_20250931.csv")
     all_data_df['Result'] = all_data_df['Result'].str.split(' ').str[0]
     all_unique = all_data_df[all_data_df['Team'] < all_data_df['Opp']]
@@ -74,6 +75,10 @@ with st.spinner("Wait for it...", show_time=True):
     #create win_rate in summary table
     team_stats['win_rate'] = team_stats['wins'] / team_stats['total_matches']
     
+    ########################
+    # Create timeseries data.  
+    # This is obsolete and should be removed... carefully.
+    ########################
     # Timeseries data for the data info tab
     timeseries_df = analysis_df.groupby(["Date", "Result"])["Result"].value_counts().reset_index()
     print(timeseries_df.head())
@@ -92,6 +97,9 @@ with st.spinner("Wait for it...", show_time=True):
     timeseries_df['DayName'] = timeseries_df['Date'].dt.day_name()
     timeseries_df['MonthName'] = timeseries_df['Date'].dt.month_name()
     
+    #All matches with results only.  Used for plots to that show win rates.
+    win_count_df = data_for_avg.groupby("Team")["Result"].value_counts().reset_index()
+ 
     columns_to_keep = ['Date','Team', 'Opp', 'Result']
     match_result_lookup = all_data_df[columns_to_keep]
     
@@ -99,11 +107,19 @@ with st.spinner("Wait for it...", show_time=True):
     
     merged_df = pd.merge(data_for_avg, enhanced_results_summary_df, how = "inner", on = "Team")
     
+    ########################
+    # Create data to track the accuracy 
+    # of the random forest prediction
+    # model performanceand accuracy
+    ########################    
+    
     accuracy_tracking = pd.DataFrame({"Game Week" : ["GW 1", "GW 2", "GW 3", "GW 4", "GW 5", "GW 6", "GW 7"],
                                       "Accuracy" : [60, 70, 40, 70, 50, 40, 60],
                                       "Running Median" : [60, 65, 60, 65, 60, 55, 60]})
     
-    #Stadium data
+    ########################
+    # Create stadium data
+    ######################## 
     
     stadium_data = pd.read_csv("Data/stadiums.csv")
     
@@ -111,13 +127,17 @@ with st.spinner("Wait for it...", show_time=True):
     idx = all_df[all_df['Team'] == "Nott'ham Forest"].index
     all_df.loc[idx, 'Team'] = "Nottingham Forest"
     idx = all_df[all_df['Team'] == "Newcastle Utd"].index
+    all_df.loc[idx, 'Team'] = "Newcastle United"
+    
     all_df_for_Stadium_merge = all_df.copy()
-    all_df_for_Stadium_merge.loc[idx, 'Team'] = "Newcastle United"
     
     stadiums_pl = pd.merge(all_df_for_Stadium_merge, stadium_data, how="left", on="Team")
-    #stadiums_pl.info()
     
-    # Player data used in tab6 - Players
+    #####################################
+    # Create player data used in tab6 - Players
+    ####################################
+
+    # Load and clean up
     all_players_df = pd.read_csv("Data/players_25_26.csv")
     all_players_df.drop(["Season", "Comp", "-9999"], axis=1, inplace=True)
     
@@ -148,27 +168,95 @@ with st.spinner("Wait for it...", show_time=True):
     all_players_df["Perc_Min_Season"] = all_players_df["Min"] / (28 * 90)
     all_players_df.fillna(value = 0, inplace=True)    
     
-    # Import country location data
+    # Import country location data to be able to build hub and spoke maps for teams and players.
     countries_df = pd.read_csv("Data/countries.csv")
     
     all_players_df = all_players_df.merge(countries_df[['country', 'latitude', 'longitude', 'name']], how="left", left_on='Nation', right_on='country')
     
-    # Match attendance data
+    #######################
+    # Match attendance data for Leader boards
+    #######################
     attendance_df = pd.read_csv("Data/attendance_tracking_20250931.csv")
     
     # Merge in stadium data with attendance
     attendance_df = attendance_df.merge(stadiums_pl, how="left", on="Team")
     
     
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["Make Prediction", "Data and Model", "About Project", "Analytics", "Maps", "Players", "Leader Boards"])
+    ######################
+    # Load coach data and clean
+    ######################
     
-    # Track which tab is active (this is a workaround since Streamlit doesn't directly expose active tab)
-    if 'active_tab' not in st.session_state:
-        st.session_state.active_tab = "Tab 1"
+    # Load coach data
+    coaches_df = pd.read_csv("Data/Coaches.csv")
+    #coaches_df.isna().sum()
+    coaches_df.drop([" Ref"], axis= 1, inplace=True)
+    
+    # Deal with dates
+    # Convert Start and End to datetime
+    coaches_df['Start'] = pd.to_datetime(coaches_df['Start'], format='%d %B %Y', errors='coerce')
+    coaches_df['End'] = pd.to_datetime(coaches_df['End'], format='%d %B %Y', errors='coerce')
+    
+    # Deal with NaT in date columns
+    # First, ensure Duration is numeric (in days)
+    coaches_df['Duration'] = pd.to_numeric(coaches_df['Duration'], errors='coerce')
+    
+    # Fill missing End dates using Start + Duration
+    mask_missing_end = coaches_df['End'].isna() & coaches_df['Start'].notna()
+    coaches_df.loc[mask_missing_end, 'End'] = (
+        coaches_df.loc[mask_missing_end, 'Start'] + pd.to_timedelta(coaches_df.loc[mask_missing_end, 'Duration'], unit='D')
+    )
+    
+    # Fill missing Start dates using End - Duration
+    mask_missing_start = coaches_df['Start'].isna() & coaches_df['End'].notna()
+    coaches_df.loc[mask_missing_start, 'Start'] = (
+        coaches_df.loc[mask_missing_start, 'End'] - pd.to_timedelta(coaches_df.loc[mask_missing_start, 'Duration'], unit='D')
+    )
+    
+    # Add national flag data.
+ 
+    # first convert Nationality to 2 char value
+    coaches_df = coaches_df.merge(countries_df[['country', 'latitude', 'longitude', 'name']], how="left", left_on='Nationality', right_on='name')
 
+    # convert 2 char code to lower case to be able to create the correct link for the flag image.
+    coaches_df['country'] = coaches_df['country'].str.lower()
+    
+    # Add flag_path URLs
+    coaches_df['flag_path'] = coaches_df['country'].apply(
+        lambda x: f"https://flagcdn.com/64x48/{x}.png"
+    )
+    
+    # Correct flags for UK countries
+    idx = coaches_df[coaches_df['name'] == "Scotland"].index
+    coaches_df.loc[idx, 'flag_path'] = "https://upload.wikimedia.org/wikipedia/commons/1/10/Flag_of_Scotland.svg"
+    
+    idx = coaches_df[coaches_df['name'] == "Wales"].index
+    coaches_df.loc[idx, 'flag_path'] = "https://upload.wikimedia.org/wikipedia/commons/d/dc/Flag_of_Wales.svg"
+    
+    idx = coaches_df[coaches_df['name'] == "Northern Ireland"].index
+    coaches_df.loc[idx, 'flag_path'] = "https://upload.wikimedia.org/wikipedia/commons/4/45/Flag_of_Ireland.svg"
+    
+    idx = coaches_df[coaches_df['name'] == "Republic of Ireland"].index
+    coaches_df.loc[idx, 'flag_path'] = "https://upload.wikimedia.org/wikipedia/commons/4/45/Flag_of_Ireland.svg"
+
+    
+    # grab team badge image where available.
+    coaches_df = coaches_df.merge(stadiums_pl[["Team", "Badge"]], how="left", on="Team")
+    
+    # Remove symbols from names
+    coaches_df['Name'] = coaches_df['Name'].str.replace('‡', '').str.replace('†', '').str.replace('§', '').str.strip()
+   
+    
+   
+    ################################################
+    # Create structure of the UX
+    ################################################
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(["Make Prediction", "Data and Model", "About Project", "Analytics", "Maps", "Players", "Leader Boards", "Managers"])
+        
     ################################################
     # Contents of tab1 - Make Prediction
     ################################################
+    
+    
     with tab1:
         st.session_state.active_tab = "Tab 1"
         st.sidebar.empty()
@@ -614,23 +702,22 @@ with st.spinner("Wait for it...", show_time=True):
         gw_7_actuals = pd.DataFrame(gw_7_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
     
         # game week 7
-        gw_8_actuals_list = [["Sat 18 Oct 04:30","Nott'ham Forest", "Chelsea", np.nan, np.nan, np.nan],
-                          ["Sat 18 Oct 07:00", "Brighton", "Newcastle",  np.nan, np.nan, np.nan],
-                          ["Sat 18 Oct 07:00", "Burnley", "Leeds", np.nan, np.nan, np.nan],
-                          ["Sat 18 Oct 07:00", "Crystal Palace", "Bournemouth",  np.nan, np.nan, np.nan],
-                          ["Sat 18 Oct 07:00", "Man City", "Everton",  np.nan, np.nan, np.nan],
-                          ["Sat 18 Oct 07:00", "Sunderland", "Wolves",  np.nan, np.nan, np.nan],
-                          ["Sat 18 Oct 09:30", "Fulham", "Arsenal",  np.nan, np.nan, np.nan], 
-                          ["Sun 19 Oct 06:00", "Spurs", "Aston Villa",  np.nan, np.nan, np.nan],
-                          ["Sun 19 Oct 08:30", "Liverpool", "Man Utd",  np.nan, np.nan, np.nan],
-                          ["Mon 20 Oct 12:00", "West Ham", "Brentoford",  np.nan, np.nan, np.nan]]
+        gw_8_actuals_list = [["Sat 18 Oct 04:30","Nott'ham Forest", "Chelsea", np.nan, np.nan, "Away Win"],
+                          ["Sat 18 Oct 07:00", "Brighton", "Newcastle",  np.nan, np.nan, "Away Win"],
+                          ["Sat 18 Oct 07:00", "Burnley", "Leeds", np.nan, np.nan, "Tie"],
+                          ["Sat 18 Oct 07:00", "Crystal Palace", "Bournemouth",  np.nan, np.nan, "Tie"],
+                          ["Sat 18 Oct 07:00", "Man City", "Everton",  np.nan, np.nan, "Home Win"],
+                          ["Sat 18 Oct 07:00", "Sunderland", "Wolves",  np.nan, np.nan, "Tie"],
+                          ["Sat 18 Oct 09:30", "Fulham", "Arsenal",  np.nan, np.nan, "Away Win"], 
+                          ["Sun 19 Oct 06:00", "Spurs", "Aston Villa",  np.nan, np.nan, "Home Win"],
+                          ["Sun 19 Oct 08:30", "Liverpool", "Man Utd",  np.nan, np.nan, "Home Win"],
+                          ["Mon 20 Oct 12:00", "West Ham", "Brentoford",  np.nan, np.nan, "Tie"]]
         gw_8_actuals = pd.DataFrame(gw_8_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
             
         # Only use to post special notes about matches.  Otherwise keep False.
-        include_note = False
-        gw_note = "game_week7"
-        note = "The Manchester United V Sunderland match will be close with Sunderland possibly pulling out a Win.  \n Prediction is a Home Win, but I am over rulling and predicting a Sunderland Win."
-    
+        include_note = True
+        gw_note = "game_week8"
+        note = "The Crystal Palace V Bournemouth match will be close with Bournemouth possibly pulling out a Win. \nPrediction is a Tie, but I am watching this one closely for Bournemouth Win. \nSame goes for the Sunderland v Wolves match.  Sunderland is playing wel."
         # mapping of game selection text to the correct dataframe
         actuals_week_mapping = {
             "game_week1": gw_1_actuals,
@@ -768,6 +855,7 @@ with st.spinner("Wait for it...", show_time=True):
         st.write("__Team Table Comparison__")
         st.dataframe(table_comp_df, column_order=("Pos","Team","Pl","W","D","L","GF","GA","GD","Pts"), hide_index=True)
                             
+    
     ################################################
     # Contents of tab2 - Data and Model
     ################################################
@@ -860,12 +948,12 @@ with st.spinner("Wait for it...", show_time=True):
         st.text("Feature Importances from Model Assessment:")
         st.dataframe(tmp_df)
         
-        
-        
+
     ################################################
     # Contents of tab3 - About (contains write up of project)
     ################################################
             
+    
     with tab3:
         st.session_state.active_tab = "Tab 3"
         st.sidebar.empty()
@@ -895,10 +983,12 @@ with st.spinner("Wait for it...", show_time=True):
             markdown_content = file.read()
         st.markdown(markdown_content)    
         
+        
     ################################################
     # Contents of tab4 - Analytics
     ################################################
             
+    
     with tab4:
         st.session_state.active_tab = "Tab 4"
         st.sidebar.empty()
@@ -908,9 +998,11 @@ with st.spinner("Wait for it...", show_time=True):
            
         st.pyplot(streak_fig)
     
+    
     ################################################
     # Contents of tab5 - Maps
     ################################################
+    
     
     with tab5:
         
@@ -1015,7 +1107,6 @@ with st.spinner("Wait for it...", show_time=True):
                 submitted = st.form_submit_button("Build Hub and Spoke Map <-----")
                 st.html('<hr style="border: none; height: 3px; background-color: #808080;">')
                 
-                # Determine view state based on selection
                 if submitted:
                     if selected_team == 'All Teams':
                         
@@ -1115,9 +1206,11 @@ with st.spinner("Wait for it...", show_time=True):
                     with col2:
                         st.metric("Countries Represented", unique_countries)
           
+            
     ################################################
     # Contents of tab6 - Players
     ################################################
+    
     
     with tab6:
         
@@ -1266,10 +1359,12 @@ with st.spinner("Wait for it...", show_time=True):
                 hide_index=True
             )
     
+    
     ################################################
     # Contents of tab7 - Leader Boards
     ################################################
-            
+           
+    
     with tab7:
         
         player_tab, team_tab, fans_tab = st.tabs(["Player", "Team", "Fans"])
@@ -1706,12 +1801,168 @@ with st.spinner("Wait for it...", show_time=True):
             
             st.subheader("\n=== Stadium Size Analysis ===")
             st.write(size_utilization)
+          
             
+    ################################################
+    # Contents of tab7 - Managers
+    ################################################
+           
+    
+    with tab8:  
+        import streamlit as st
+        import plotly.express as px
         
+        #############################
+        # Display Hub and Spoke map of all 
+        #countries coaches are from to the 
+        # center of England.
+        ##############################
+
+        # Origin is the hub.
+        origin = countries_df[countries_df['country'] == "GB"][['latitude', 'longitude', 'name']].iloc[0]
+        origin_dict = {'lat': origin['latitude'], 'lon': origin['longitude'], 'name': origin['name']}
         
+        # Destinations are the centroid of the countries coaches are from.
+        destinations = coaches_df[['country', 'Name', 'latitude', 'longitude', 'name']].drop_duplicates(subset='country')
+        destinations_dict = destinations.rename(columns={'latitude': 'lat', 'longitude': 'lon', 'Name': 'target_name'}).to_dict('records')
+
+        st.title("Home country of each coach who managed a Premier League team")
         
+        hub.create_hub_spoke_map(origin_dict, destinations_dict, coaches=True)
         
+        st.subheader("Nationality Distribution of Team Managers")
+        coach_nat_count = coaches_df.groupby('name')['Name'].nunique().sort_values(ascending=False).reset_index()
+        coach_nat_count.columns = ['name', 'count']
         
+        fig = px.bar(coach_nat_count, 
+                     x='count', 
+                     y='name',
+                     orientation='h',
+                     labels={'count': 'Count of Coaches', 'name': 'Country'})
+        fig.update_layout(height=max(600, 800),
+                          yaxis={'categoryorder':'total ascending'})  # or 'total descending'
+        st.plotly_chart(fig)
         
+        ################################
+        # Average tenure by nationality
+        ################################
+        st.subheader("Nationality Distribution of Team Managers and Average Tenure")
+        avg_tenure = coaches_df.groupby('Nationality')['Duration'].mean().sort_values(ascending=False).reset_index()
         
+        fig = px.bar(avg_tenure,
+                     x='Nationality',
+                     y='Duration',
+                     labels={'Nationality': 'Country', 'Duration': 'Average Days on a Team'})
+        fig.update_layout(yaxis={'categoryorder':'total ascending'})
+        st.plotly_chart(fig)
+
         
+        ###############################
+        # Timeline of coaching tenures
+        ###############################
+        # Get the list of teams from stadiums_pl
+        teams_to_include = stadiums_pl["Team"].tolist()
+        
+        # Filter coaches_df to only these teams
+        coaches_filtered = coaches_df[coaches_df['Team'].isin(teams_to_include)]
+        
+        # Sort by team and start date
+        coaches_sorted = coaches_filtered.sort_values(['Team', 'Start'])
+        
+        # Remove any rows with missing dates
+        coaches_sorted = coaches_sorted.dropna(subset=['Start', 'End'])
+        
+        # Create the plot with adjusted height
+        fig = px.timeline(
+            coaches_sorted, 
+            x_start='Start', 
+            x_end='End', 
+            y='Team',
+            color='Name',
+            title='Team Coaching Timeline (gaps indicate timeframes with multiple coaches with short tenures)'
+        )
+        
+        # Adjust the height based on number of teams (e.g., 30 pixels per team)
+        num_teams = coaches_sorted['Team'].nunique()
+        fig.update_layout(
+            height=max(600, num_teams * 30),  # Minimum 600px, or 30px per team
+            yaxis={'categoryorder': 'category ascending'}
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+    
+        
+        # Distribution of tenure lengths
+        #fig = px.histogram(coaches_sorted, x='Duration', nbins=20, title='Distribution of Coach Tenure')
+        #st.plotly_chart(fig)
+        
+        ####################
+        # Coach journey!!!
+        ####################
+        
+        # Find coaches who have managed multiple teams
+        coach_team_counts = coaches_df.groupby('Name')['Team'].nunique()
+        multi_team_coaches = coach_team_counts[coach_team_counts > 1].sort_values(ascending=False)
+        
+        # Create a selectbox for the user to choose a coach
+        st.subheader("Coach Career Journey")
+        selected_coach = st.selectbox(
+            "Select a coach to see their career journey:",
+            options=multi_team_coaches.index.tolist(),
+            format_func=lambda x: f"{x} ({multi_team_coaches[x]} teams)"
+        )
+        with st.spinner("Wait for it...", show_time=True):
+            time.sleep(5)
+        
+            # Filter data for the selected coach
+            coach_journey = coaches_df[coaches_df['Name'] == selected_coach].copy()
+            coach_journey = coach_journey.sort_values('Start')
+            
+            # Display summary stats
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                country_name = coach_journey['name'].iloc[0]
+                flag_path = coach_journey['flag_path'].iloc[0]
+                st.image(flag_path, caption=country_name, width=100)
+            with col2:
+                st.metric("Total Teams", coach_journey['Team'].nunique())
+            with col3:
+                st.metric("Total Stints", len(coach_journey))
+            with col4:
+                total_days = coach_journey['Duration'].sum()
+                st.metric("Total Years", f"{total_days/365.25:.1f} years")
+                
+            # Create timeline visualization
+            fig = px.timeline(
+                coach_journey,
+                x_start='Start',
+                x_end='End',
+                y='Team',
+                color='Team',
+                title=f"{selected_coach}'s Coaching Career Timeline",
+                hover_data=['Nationality', 'Duration']
+            )
+            
+            fig.update_layout(
+                height=max(400, len(coach_journey) * 50),
+                showlegend=False,
+                yaxis={'categoryorder': 'array', 'categoryarray': coach_journey.sort_values('Start')['Team'].tolist()}
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Show detailed table
+            st.subheader("Career Details")
+            display_cols = ['Team', 'Start', 'End', 'Duration', 'Nationality']
+            st.dataframe(coach_journey, column_order=["Badge", "Team", "Start", "End", "Duration"], column_config={
+                "flag_path": st.column_config.ImageColumn(
+                            "Nationality",
+                            help="Flag of the choach's nationality"
+                ),
+                "Badge": st.column_config.ImageColumn(
+                            "Team",
+                            help="Badge of the teaam"
+                ),
+            }, use_container_width=True, hide_index=True)
+        
+                
