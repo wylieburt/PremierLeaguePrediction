@@ -32,9 +32,9 @@ with st.spinner("Wait for it...", show_time=True):
     import Data.stadiums_merge as sm
     
 
-########################
-# Import model and data
-########################
+    ########################
+    # Import model and data
+    ########################
     
     # set pandas display option
     pd.set_option('display.max_columns', None)
@@ -48,6 +48,9 @@ with st.spinner("Wait for it...", show_time=True):
     
     # For more increased performance and to reduce massice data processing on every
     # user interaction, create these funtions to use streamlit cacheing.
+    # use @st.cache_resource for: ML models, database connections, global objects
+    # use st.cache_data for: DataFrames, lists, processed data
+    # Don't cache: User inputs, session state, dynamic calculations based on user selections
     
     @st.cache_resource
     def load_model():
@@ -55,26 +58,229 @@ with st.spinner("Wait for it...", show_time=True):
     
     @st.cache_data
     def load_match_data():
-        df = pd.read_csv("Data/match_data_2020_20250931.csv")
-        df['Result'] = df['Result'].str.split(' ').str[0]
-        return df
+        all_data_df = pd.read_csv("Data/match_data_2020_20250931.csv")
+        all_data_df['Result'] = all_data_df['Result'].str.split(' ').str[0]
+        all_data_df["match_counter"] = 1
+        return all_data_df
     
     @st.cache_data
-    def load_player_data():
-        df = pd.read_csv("Data/players_25_26.csv")
-        # ... all processing
-        return df
+    def load_avg_data():
+        data_for_avg = joblib.load('Data/premier_random_forest_2020_20250931_prediction_data.joblib')
+        return data_for_avg 
+    
+    @st.cache_data
+    def create_player_data(stadiums_pl, countries_df):
+        
+        # Load
+        all_players_df = pd.read_csv("Data/players_25_26.csv")
+        
+        # clean up
+        all_players_df.drop(["Season", "Comp", "-9999"], axis=1, inplace=True)
+        
+        #country_codes_df = pd.read_csv("Data/world.csv")
 
+        all_players_df['Nation'] = all_players_df['Nation'].str.replace(r'[A-Z]{3}', '', regex=True).str.strip()
+        
+        all_players_df['Nation'] = all_players_df['Nation'].replace({'eng': 'gb',
+                                                                     'wls': 'gb',
+                                                                     'nir': 'gb',
+                                                                     'sct': 'gb'})
+        
+        # Add flag_path URLs
+        all_players_df['flag_path'] = all_players_df['Nation'].apply(
+            lambda x: f"https://flagcdn.com/64x48/{x}.png"
+        )
+        
+        all_players_df['Nation'] = all_players_df['Nation'].str.upper()
+        
+        # Add extra stadium data
+        #stadiums_pl = sm.stadium_merge(stadiums_pl)
+        
+        # Grab badge from stadiums-pl and add to players
+        all_players_df['Team'] = all_players_df['Team'].replace({"Nott'ham Forest": 'Nottingham Forest'})
+        all_players_df = all_players_df.merge(stadiums_pl[["Team", "Badge"]], how="left", on="Team")
+        
+        # Add in a % of total minutes for the season 28*90
+        all_players_df["Perc_Min_Season"] = all_players_df["Min"] / (28 * 90)
+        all_players_df.fillna(value = 0, inplace=True)    
+        
+        # Import country location data to be able to build hub and spoke maps for teams and players.
+        # countries_df = pd.read_csv("Data/countries.csv")
+        
+        all_players_df = all_players_df.merge(countries_df[['country', 'latitude', 'longitude', 'name']], how="left", left_on='Nation', right_on='country')
+        
+        return all_players_df
+    
+    @st.cache_data
+    def create_team_stats(all_data_df):
+        # add win % to add_data_df.  First add a match counter set to 1 for all rows.  Used to count up all matches for a team.
+        #all_data_df["match_counter"] = 1
+        
+        # create summary table with counts
+        team_stats = all_data_df.groupby('Team').agg(
+            total_matches=('match_counter', 'sum'),
+            wins=('Result', lambda x: (x == 'W').sum()),
+            draws=('Result', lambda x: (x == 'D').sum()),
+            losses=('Result', lambda x: (x == 'L').sum())
+        ).reset_index()
+        
+        #create win_rate in summary table
+        team_stats['win_rate'] = team_stats['wins'] / team_stats['total_matches']
+        return team_stats
+    
+    @st.cache_data
+    def create_timeseries_data(all_data_df):
+        all_unique = all_data_df[all_data_df['Team'] < all_data_df['Opp']]
+        analysis_df = all_unique
+        
+        # Timeseries data for the data info tab
+        timeseries_df = analysis_df.groupby(["Date", "Result"])["Result"].value_counts().reset_index()
+        timeseries_df['Date'] = pd.to_datetime(timeseries_df['Date'])
+        
+        # Dealing with dates
+        timeseries_df['Year'] = timeseries_df['Date'].dt.year
+        timeseries_df['Month'] = timeseries_df['Date'].dt.month
+        timeseries_df['Day'] = timeseries_df['Date'].dt.day
+        timeseries_df['DayOfWeek'] = timeseries_df['Date'].dt.dayofweek  # Monday=0, Sunday=6
+        timeseries_df['DayOfYear'] = timeseries_df['Date'].dt.dayofyear
+        timeseries_df['Week'] = timeseries_df['Date'].dt.isocalendar().week
+        timeseries_df['Quarter'] = timeseries_df['Date'].dt.quarter
+        
+        # Add readable day names
+        timeseries_df['DayName'] = timeseries_df['Date'].dt.day_name()
+        timeseries_df['MonthName'] = timeseries_df['Date'].dt.month_name()
+        
+        return timeseries_df
+    
+    @st.cache_data
+    def create_merge_data(data_for_avg):
+        merged_df = pd.merge(data_for_avg, enhanced_results_summary_df, how = "inner", on = "Team")
+        
+        return merged_df
+    
+    @st.cache_data
+    def create_accuracy_data():
+        accuracy_tracking = pd.DataFrame({"Game Week" : ["GW 1", "GW 2", "GW 3", "GW 4", "GW 5", "GW 6", "GW 7"],
+                                          "Accuracy" : [60, 70, 40, 70, 50, 40, 60],
+                                          "Running Median" : [60, 65, 60, 65, 60, 55, 60]})
+        return accuracy_tracking
+    
+    @st.cache_data
+    def create_stadium_data(all_data_df):
+        
+        import Data.stadiums_merge as sm
+        
+        stadium_data = pd.read_csv("Data/stadiums.csv")
+        
+        all_df = pd.DataFrame(all_data_df["Team"].unique(), columns = ["Team"])
+        idx = all_df[all_df['Team'] == "Nott'ham Forest"].index
+        all_df.loc[idx, 'Team'] = "Nottingham Forest"
+        idx = all_df[all_df['Team'] == "Newcastle Utd"].index
+        all_df.loc[idx, 'Team'] = "Newcastle United"
+        
+        all_df_for_Stadium_merge = all_df.copy()
+        
+        stadiums_pl = pd.merge(all_df_for_Stadium_merge, stadium_data, how="left", on="Team")
+        
+        # Add extra stadium data
+        stadiums_pl = sm.stadium_merge(stadiums_pl)
+        
+        return stadiums_pl
+    
+    @st.cache_data
+    def create_country_data():
+        countries_df = pd.read_csv("Data/countries.csv")
+        
+        return countries_df
+    
+    @st.cache_data
+    def create_country_code_data():
+        country_codes_df = pd.read_csv("Data/world.csv")
+        
+        return country_codes_df
+    
+    @st.cache_data
+    def create_attendance_date(stadiums_pl):
+        attendance_df = pd.read_csv("Data/attendance_tracking_20250931.csv")
+        
+        # Merge in stadium data with attendance
+        attendance_df = attendance_df.merge(stadiums_pl, how="left", on="Team")
+        
+        return attendance_df
+    
+    @st.cache_data
+    def create_coach_data(countries_df, stadiums_pl):
+        # Load coach data
+        coaches_df = pd.read_csv("Data/coaches.csv")
+        #coaches_df.isna().sum()
+        coaches_df.drop([" Ref"], axis= 1, inplace=True)
+        
+        # Deal with dates
+        # Convert Start and End to datetime
+        coaches_df['Start'] = pd.to_datetime(coaches_df['Start'], format='%d %B %Y', errors='coerce')
+        coaches_df['End'] = pd.to_datetime(coaches_df['End'], format='%d %B %Y', errors='coerce')
+        
+        # Deal with NaT in date columns
+        # First, ensure Duration is numeric (in days)
+        coaches_df['Duration'] = pd.to_numeric(coaches_df['Duration'], errors='coerce')
+        
+        # Fill missing End dates using Start + Duration
+        mask_missing_end = coaches_df['End'].isna() & coaches_df['Start'].notna()
+        coaches_df.loc[mask_missing_end, 'End'] = (
+            coaches_df.loc[mask_missing_end, 'Start'] + pd.to_timedelta(coaches_df.loc[mask_missing_end, 'Duration'], unit='D')
+        )
+        
+        # Fill missing Start dates using End - Duration
+        mask_missing_start = coaches_df['Start'].isna() & coaches_df['End'].notna()
+        coaches_df.loc[mask_missing_start, 'Start'] = (
+            coaches_df.loc[mask_missing_start, 'End'] - pd.to_timedelta(coaches_df.loc[mask_missing_start, 'Duration'], unit='D')
+        )
+        
+        # Add national flag data.
+     
+        # first convert Nationality to 2 char value
+        coaches_df = coaches_df.merge(countries_df[['country', 'latitude', 'longitude', 'name']], how="left", left_on='Nationality', right_on='name')
+    
+        # convert 2 char code to lower case to be able to create the correct link for the flag image.
+        coaches_df['country'] = coaches_df['country'].str.lower()
+        
+        # Add flag_path URLs
+        coaches_df['flag_path'] = coaches_df['country'].apply(
+            lambda x: f"https://flagcdn.com/64x48/{x}.png"
+        )
+        
+        # Correct flags for UK countries
+        idx = coaches_df[coaches_df['name'] == "Scotland"].index
+        coaches_df.loc[idx, 'flag_path'] = "https://upload.wikimedia.org/wikipedia/commons/1/10/Flag_of_Scotland.svg"
+        
+        idx = coaches_df[coaches_df['name'] == "Wales"].index
+        coaches_df.loc[idx, 'flag_path'] = "https://upload.wikimedia.org/wikipedia/commons/d/dc/Flag_of_Wales.svg"
+        
+        idx = coaches_df[coaches_df['name'] == "Northern Ireland"].index
+        coaches_df.loc[idx, 'flag_path'] = "https://upload.wikimedia.org/wikipedia/commons/4/45/Flag_of_Ireland.svg"
+        
+        idx = coaches_df[coaches_df['name'] == "Republic of Ireland"].index
+        coaches_df.loc[idx, 'flag_path'] = "https://upload.wikimedia.org/wikipedia/commons/4/45/Flag_of_Ireland.svg"
+    
+        
+        # grab team badge image where available.
+        coaches_df = coaches_df.merge(stadiums_pl[["Team", "Badge"]], how="left", on="Team")
+        
+        # Remove symbols from names
+        coaches_df['Name'] = coaches_df['Name'].str.replace('‡', '').str.replace('†', '').str.replace('§', '').str.strip()
+       
+        return coaches_df
+    
     # Then in main code:
     clf_reduced = load_model()
     all_data_df = load_match_data()
-    all_players_df = load_player_data()
+    data_for_avg = load_avg_data()
     
     
     
     #clf_reduced = joblib.load('Models/premier_random_forest_2020_20250931_prediction.joblib')
     clf_reduced_name = 'premier_random_forest_2020_20250931'
-    data_for_avg = joblib.load('Data/premier_random_forest_2020_20250931_prediction_data.joblib')
+    #data_for_avg = joblib.load('Data/premier_random_forest_2020_20250931_prediction_data.joblib')
     
     ########################
     # Import match data
@@ -82,44 +288,48 @@ with st.spinner("Wait for it...", show_time=True):
    
     # All matches with data, team, opp, and result
     #all_data_df = pd.read_csv("Data/match_data_2020_20250931.csv")
-    all_data_df['Result'] = all_data_df['Result'].str.split(' ').str[0]
-    all_unique = all_data_df[all_data_df['Team'] < all_data_df['Opp']]
-    analysis_df = all_unique
+    #all_data_df['Result'] = all_data_df['Result'].str.split(' ').str[0]
+    # all_unique = all_data_df[all_data_df['Team'] < all_data_df['Opp']]
+    # analysis_df = all_unique
     
     # add win % to add_data_df.  First add a match counter set to 1 for all rows.  Used to count up all matches for a team.
-    all_data_df["match_counter"] = 1
-    
+    #all_data_df["match_counter"] = 1
+
     # create summary table with counts
-    team_stats = all_data_df.groupby('Team').agg(
-        total_matches=('match_counter', 'sum'),
-        wins=('Result', lambda x: (x == 'W').sum()),
-        draws=('Result', lambda x: (x == 'D').sum()),
-        losses=('Result', lambda x: (x == 'L').sum())
-    ).reset_index()
+    # team_stats = all_data_df.groupby('Team').agg(
+    #     total_matches=('match_counter', 'sum'),
+    #     wins=('Result', lambda x: (x == 'W').sum()),
+    #     draws=('Result', lambda x: (x == 'D').sum()),
+    #     losses=('Result', lambda x: (x == 'L').sum())
+    # ).reset_index()
     
-    #create win_rate in summary table
-    team_stats['win_rate'] = team_stats['wins'] / team_stats['total_matches']
+    # #create win_rate in summary table
+    # team_stats['win_rate'] = team_stats['wins'] / team_stats['total_matches']
+    
+    team_stats = create_team_stats(all_data_df)
     
     ########################
     # Create timeseries data.  
-    # This is obsolete and should be removed... carefully.
     ########################
+    
+    #timeseries_df = create_timeseries_data(all_data_df)
+    
     # Timeseries data for the data info tab
-    timeseries_df = analysis_df.groupby(["Date", "Result"])["Result"].value_counts().reset_index()
-    timeseries_df['Date'] = pd.to_datetime(timeseries_df['Date'])
+    # timeseries_df = analysis_df.groupby(["Date", "Result"])["Result"].value_counts().reset_index()
+    # timeseries_df['Date'] = pd.to_datetime(timeseries_df['Date'])
     
-    # Extract date components
-    timeseries_df['Year'] = timeseries_df['Date'].dt.year
-    timeseries_df['Month'] = timeseries_df['Date'].dt.month
-    timeseries_df['Day'] = timeseries_df['Date'].dt.day
-    timeseries_df['DayOfWeek'] = timeseries_df['Date'].dt.dayofweek  # Monday=0, Sunday=6
-    timeseries_df['DayOfYear'] = timeseries_df['Date'].dt.dayofyear
-    timeseries_df['Week'] = timeseries_df['Date'].dt.isocalendar().week
-    timeseries_df['Quarter'] = timeseries_df['Date'].dt.quarter
+    # # Dealing with dates
+    # timeseries_df['Year'] = timeseries_df['Date'].dt.year
+    # timeseries_df['Month'] = timeseries_df['Date'].dt.month
+    # timeseries_df['Day'] = timeseries_df['Date'].dt.day
+    # timeseries_df['DayOfWeek'] = timeseries_df['Date'].dt.dayofweek  # Monday=0, Sunday=6
+    # timeseries_df['DayOfYear'] = timeseries_df['Date'].dt.dayofyear
+    # timeseries_df['Week'] = timeseries_df['Date'].dt.isocalendar().week
+    # timeseries_df['Quarter'] = timeseries_df['Date'].dt.quarter
     
-    # Add readable day names
-    timeseries_df['DayName'] = timeseries_df['Date'].dt.day_name()
-    timeseries_df['MonthName'] = timeseries_df['Date'].dt.month_name()
+    # # Add readable day names
+    # timeseries_df['DayName'] = timeseries_df['Date'].dt.day_name()
+    # timeseries_df['MonthName'] = timeseries_df['Date'].dt.month_name()
     
     #All matches with results only.  Used for plots to that show win rates.
     win_count_df = data_for_avg.groupby("Team")["Result"].value_counts().reset_index()
@@ -129,7 +339,9 @@ with st.spinner("Wait for it...", show_time=True):
     
     enhanced_results_summary_df = preproc.enhanced_results_summary(match_result_lookup)
     
-    merged_df = pd.merge(data_for_avg, enhanced_results_summary_df, how = "inner", on = "Team")
+    #merged_df = pd.merge(data_for_avg, enhanced_results_summary_df, how = "inner", on = "Team")
+    
+    merged_df = create_merge_data(data_for_avg)
     
     ########################
     # Create data to track the accuracy 
@@ -137,25 +349,36 @@ with st.spinner("Wait for it...", show_time=True):
     # model performanceand accuracy
     ########################    
     
-    accuracy_tracking = pd.DataFrame({"Game Week" : ["GW 1", "GW 2", "GW 3", "GW 4", "GW 5", "GW 6", "GW 7"],
-                                      "Accuracy" : [60, 70, 40, 70, 50, 40, 60],
-                                      "Running Median" : [60, 65, 60, 65, 60, 55, 60]})
+    #accuracy_tracking = pd.DataFrame({"Game Week" : ["GW 1", "GW 2", "GW 3", "GW 4", "GW 5", "GW 6", "GW 7"],
+     #                                 "Accuracy" : [60, 70, 40, 70, 50, 40, 60],
+     #                                 "Running Median" : [60, 65, 60, 65, 60, 55, 60]})
+     
+    accuracy_tracking = create_accuracy_data() 
     
     ########################
     # Create stadium data
     ######################## 
     
-    stadium_data = pd.read_csv("Data/stadiums.csv")
+    # stadium_data = pd.read_csv("Data/stadiums.csv")
     
-    all_df = pd.DataFrame(all_data_df["Team"].unique(), columns = ["Team"])
-    idx = all_df[all_df['Team'] == "Nott'ham Forest"].index
-    all_df.loc[idx, 'Team'] = "Nottingham Forest"
-    idx = all_df[all_df['Team'] == "Newcastle Utd"].index
-    all_df.loc[idx, 'Team'] = "Newcastle United"
+    # all_df = pd.DataFrame(all_data_df["Team"].unique(), columns = ["Team"])
+    # idx = all_df[all_df['Team'] == "Nott'ham Forest"].index
+    # all_df.loc[idx, 'Team'] = "Nottingham Forest"
+    # idx = all_df[all_df['Team'] == "Newcastle Utd"].index
+    # all_df.loc[idx, 'Team'] = "Newcastle United"
     
-    all_df_for_Stadium_merge = all_df.copy()
+    # all_df_for_Stadium_merge = all_df.copy()
     
-    stadiums_pl = pd.merge(all_df_for_Stadium_merge, stadium_data, how="left", on="Team")
+    # stadiums_pl = pd.merge(all_df_for_Stadium_merge, stadium_data, how="left", on="Team")
+    
+    stadiums_pl = create_stadium_data(all_data_df)
+    
+    #####################################
+    # Create country data for location and merging
+    ####################################   
+    
+    countries_df = create_country_data()
+    country_codes_df = create_country_code_data()
     
     #####################################
     # Create player data used in tab6 - Players
@@ -163,113 +386,116 @@ with st.spinner("Wait for it...", show_time=True):
 
     # Load and clean up
     #all_players_df = pd.read_csv("Data/players_25_26.csv")
-    all_players_df.drop(["Season", "Comp", "-9999"], axis=1, inplace=True)
+    # all_players_df.drop(["Season", "Comp", "-9999"], axis=1, inplace=True)
     
-    country_codes_df = pd.read_csv("Data/world.csv")
+    # #country_codes_df = pd.read_csv("Data/world.csv")
     
-    all_players_df['Nation'] = all_players_df['Nation'].str.replace(r'[A-Z]{3}', '', regex=True).str.strip()
+    # all_players_df['Nation'] = all_players_df['Nation'].str.replace(r'[A-Z]{3}', '', regex=True).str.strip()
     
-    all_players_df['Nation'] = all_players_df['Nation'].replace({'eng': 'gb',
-                                                                 'wls': 'gb',
-                                                                 'nir': 'gb',
-                                                                 'sct': 'gb'})
+    # all_players_df['Nation'] = all_players_df['Nation'].replace({'eng': 'gb',
+    #                                                              'wls': 'gb',
+    #                                                              'nir': 'gb',
+    #                                                              'sct': 'gb'})
     
-    # Add flag_path URLs
-    all_players_df['flag_path'] = all_players_df['Nation'].apply(
-        lambda x: f"https://flagcdn.com/64x48/{x}.png"
-    )
+    # # Add flag_path URLs
+    # all_players_df['flag_path'] = all_players_df['Nation'].apply(
+    #     lambda x: f"https://flagcdn.com/64x48/{x}.png"
+    # )
     
-    all_players_df['Nation'] = all_players_df['Nation'].str.upper()
+    # all_players_df['Nation'] = all_players_df['Nation'].str.upper()
     
-    # Add extra stadium data
-    stadiums_pl = sm.stadium_merge(stadiums_pl)
+    # # Add extra stadium data
+    # #stadiums_pl = sm.stadium_merge(stadiums_pl)
     
-    # Grab badge from stadiums-pl and add to players
-    all_players_df['Team'] = all_players_df['Team'].replace({"Nott'ham Forest": 'Nottingham Forest'})
-    all_players_df = all_players_df.merge(stadiums_pl[["Team", "Badge"]], how="left", on="Team")
+    # # Grab badge from stadiums-pl and add to players
+    # all_players_df['Team'] = all_players_df['Team'].replace({"Nott'ham Forest": 'Nottingham Forest'})
+    # all_players_df = all_players_df.merge(stadiums_pl[["Team", "Badge"]], how="left", on="Team")
     
-    # Add in a % of total minutes for the season 28*90
-    all_players_df["Perc_Min_Season"] = all_players_df["Min"] / (28 * 90)
-    all_players_df.fillna(value = 0, inplace=True)    
+    # # Add in a % of total minutes for the season 28*90
+    # all_players_df["Perc_Min_Season"] = all_players_df["Min"] / (28 * 90)
+    # all_players_df.fillna(value = 0, inplace=True)    
     
-    # Import country location data to be able to build hub and spoke maps for teams and players.
-    countries_df = pd.read_csv("Data/countries.csv")
+    # # Import country location data to be able to build hub and spoke maps for teams and players.
+    # # countries_df = pd.read_csv("Data/countries.csv")
     
-    all_players_df = all_players_df.merge(countries_df[['country', 'latitude', 'longitude', 'name']], how="left", left_on='Nation', right_on='country')
+    # all_players_df = all_players_df.merge(countries_df[['country', 'latitude', 'longitude', 'name']], how="left", left_on='Nation', right_on='country')
+    
+    all_players_df = create_player_data(stadiums_pl, countries_df)
     
     #######################
     # Match attendance data for Leader boards
     #######################
-    attendance_df = pd.read_csv("Data/attendance_tracking_20250931.csv")
+    # attendance_df = pd.read_csv("Data/attendance_tracking_20250931.csv")
     
-    # Merge in stadium data with attendance
-    attendance_df = attendance_df.merge(stadiums_pl, how="left", on="Team")
+    # # Merge in stadium data with attendance
+    # attendance_df = attendance_df.merge(stadiums_pl, how="left", on="Team")
     
+    attendance_df = create_attendance_date(stadiums_pl)
     
     ######################
     # Load coach data and clean
     ######################
     
-    # Load coach data
-    coaches_df = pd.read_csv("Data/coaches.csv")
-    #coaches_df.isna().sum()
-    coaches_df.drop([" Ref"], axis= 1, inplace=True)
+    # # Load coach data
+    # coaches_df = pd.read_csv("Data/coaches.csv")
+    # #coaches_df.isna().sum()
+    # coaches_df.drop([" Ref"], axis= 1, inplace=True)
     
-    # Deal with dates
-    # Convert Start and End to datetime
-    coaches_df['Start'] = pd.to_datetime(coaches_df['Start'], format='%d %B %Y', errors='coerce')
-    coaches_df['End'] = pd.to_datetime(coaches_df['End'], format='%d %B %Y', errors='coerce')
+    # # Deal with dates
+    # # Convert Start and End to datetime
+    # coaches_df['Start'] = pd.to_datetime(coaches_df['Start'], format='%d %B %Y', errors='coerce')
+    # coaches_df['End'] = pd.to_datetime(coaches_df['End'], format='%d %B %Y', errors='coerce')
     
-    # Deal with NaT in date columns
-    # First, ensure Duration is numeric (in days)
-    coaches_df['Duration'] = pd.to_numeric(coaches_df['Duration'], errors='coerce')
+    # # Deal with NaT in date columns
+    # # First, ensure Duration is numeric (in days)
+    # coaches_df['Duration'] = pd.to_numeric(coaches_df['Duration'], errors='coerce')
     
-    # Fill missing End dates using Start + Duration
-    mask_missing_end = coaches_df['End'].isna() & coaches_df['Start'].notna()
-    coaches_df.loc[mask_missing_end, 'End'] = (
-        coaches_df.loc[mask_missing_end, 'Start'] + pd.to_timedelta(coaches_df.loc[mask_missing_end, 'Duration'], unit='D')
-    )
+    # # Fill missing End dates using Start + Duration
+    # mask_missing_end = coaches_df['End'].isna() & coaches_df['Start'].notna()
+    # coaches_df.loc[mask_missing_end, 'End'] = (
+    #     coaches_df.loc[mask_missing_end, 'Start'] + pd.to_timedelta(coaches_df.loc[mask_missing_end, 'Duration'], unit='D')
+    # )
     
-    # Fill missing Start dates using End - Duration
-    mask_missing_start = coaches_df['Start'].isna() & coaches_df['End'].notna()
-    coaches_df.loc[mask_missing_start, 'Start'] = (
-        coaches_df.loc[mask_missing_start, 'End'] - pd.to_timedelta(coaches_df.loc[mask_missing_start, 'Duration'], unit='D')
-    )
+    # # Fill missing Start dates using End - Duration
+    # mask_missing_start = coaches_df['Start'].isna() & coaches_df['End'].notna()
+    # coaches_df.loc[mask_missing_start, 'Start'] = (
+    #     coaches_df.loc[mask_missing_start, 'End'] - pd.to_timedelta(coaches_df.loc[mask_missing_start, 'Duration'], unit='D')
+    # )
     
-    # Add national flag data.
+    # # Add national flag data.
  
-    # first convert Nationality to 2 char value
-    coaches_df = coaches_df.merge(countries_df[['country', 'latitude', 'longitude', 'name']], how="left", left_on='Nationality', right_on='name')
+    # # first convert Nationality to 2 char value
+    # coaches_df = coaches_df.merge(countries_df[['country', 'latitude', 'longitude', 'name']], how="left", left_on='Nationality', right_on='name')
 
-    # convert 2 char code to lower case to be able to create the correct link for the flag image.
-    coaches_df['country'] = coaches_df['country'].str.lower()
+    # # convert 2 char code to lower case to be able to create the correct link for the flag image.
+    # coaches_df['country'] = coaches_df['country'].str.lower()
     
-    # Add flag_path URLs
-    coaches_df['flag_path'] = coaches_df['country'].apply(
-        lambda x: f"https://flagcdn.com/64x48/{x}.png"
-    )
+    # # Add flag_path URLs
+    # coaches_df['flag_path'] = coaches_df['country'].apply(
+    #     lambda x: f"https://flagcdn.com/64x48/{x}.png"
+    # )
     
-    # Correct flags for UK countries
-    idx = coaches_df[coaches_df['name'] == "Scotland"].index
-    coaches_df.loc[idx, 'flag_path'] = "https://upload.wikimedia.org/wikipedia/commons/1/10/Flag_of_Scotland.svg"
+    # # Correct flags for UK countries
+    # idx = coaches_df[coaches_df['name'] == "Scotland"].index
+    # coaches_df.loc[idx, 'flag_path'] = "https://upload.wikimedia.org/wikipedia/commons/1/10/Flag_of_Scotland.svg"
     
-    idx = coaches_df[coaches_df['name'] == "Wales"].index
-    coaches_df.loc[idx, 'flag_path'] = "https://upload.wikimedia.org/wikipedia/commons/d/dc/Flag_of_Wales.svg"
+    # idx = coaches_df[coaches_df['name'] == "Wales"].index
+    # coaches_df.loc[idx, 'flag_path'] = "https://upload.wikimedia.org/wikipedia/commons/d/dc/Flag_of_Wales.svg"
     
-    idx = coaches_df[coaches_df['name'] == "Northern Ireland"].index
-    coaches_df.loc[idx, 'flag_path'] = "https://upload.wikimedia.org/wikipedia/commons/4/45/Flag_of_Ireland.svg"
+    # idx = coaches_df[coaches_df['name'] == "Northern Ireland"].index
+    # coaches_df.loc[idx, 'flag_path'] = "https://upload.wikimedia.org/wikipedia/commons/4/45/Flag_of_Ireland.svg"
     
-    idx = coaches_df[coaches_df['name'] == "Republic of Ireland"].index
-    coaches_df.loc[idx, 'flag_path'] = "https://upload.wikimedia.org/wikipedia/commons/4/45/Flag_of_Ireland.svg"
+    # idx = coaches_df[coaches_df['name'] == "Republic of Ireland"].index
+    # coaches_df.loc[idx, 'flag_path'] = "https://upload.wikimedia.org/wikipedia/commons/4/45/Flag_of_Ireland.svg"
 
     
-    # grab team badge image where available.
-    coaches_df = coaches_df.merge(stadiums_pl[["Team", "Badge"]], how="left", on="Team")
+    # # grab team badge image where available.
+    # coaches_df = coaches_df.merge(stadiums_pl[["Team", "Badge"]], how="left", on="Team")
     
-    # Remove symbols from names
-    coaches_df['Name'] = coaches_df['Name'].str.replace('‡', '').str.replace('†', '').str.replace('§', '').str.strip()
+    # # Remove symbols from names
+    # coaches_df['Name'] = coaches_df['Name'].str.replace('‡', '').str.replace('†', '').str.replace('§', '').str.strip()
    
-    
+    coaches_df = create_coach_data(countries_df, stadiums_pl) 
    
     ################################################
     # Create structure of the UX
@@ -914,9 +1140,9 @@ with st.spinner("Wait for it...", show_time=True):
         # Performance
         #######################
         # Performance dashboard
-        st.subheader("Performance Dashboard")
-        dashboard_fig = pp.create_football_performance_dashboard(timeseries_df)
-        st.pyplot(dashboard_fig)
+        # st.subheader("Performance Dashboard")
+        # dashboard_fig = pp.create_football_performance_dashboard(timeseries_df)
+        # st.pyplot(dashboard_fig)
         
         # Team performance
         st.subheader("Team Performance Chart")
@@ -1208,12 +1434,33 @@ with st.spinner("Wait for it...", show_time=True):
                     # Display the results
                     #st.dataframe(country_counts)
                     
+                    # display diveder
                     st.html('<hr style="border: none; height: 3px; background-color: #808080;">')
-                    # Optional: Create a bar chart visualization
+                    
+                    # Create a bar chart visualization
                     st.subheader("Number of Players by Country")
-                    st.bar_chart(country_counts.set_index('Country')['Player_Count'],
-                                 x_label = "Countries Represented by Players",
-                                 y_label = "Number of Players")
+                    # Sort by player count (descending)
+                    country_counts_sorted = country_counts.sort_values('Player_Count', ascending=False)
+                    
+                    fig = px.bar(
+                        country_counts_sorted,
+                        x='Country',
+                        y='Player_Count',
+                        labels={
+                            'Country': 'Countries Represented by Players',
+                            'Player_Count': 'Number of Players'
+                        }
+                    )
+                    
+                    fig.update_layout(
+                        xaxis_title="Countries Represented by Players",
+                        yaxis_title="Number of Players",
+                        showlegend=False
+                    )
+                    
+                    fig.update_xaxes(tickangle=-45)
+                    
+                    st.plotly_chart(fig, use_container_width=True)
                     
                     # Optional: Show additional statistics
                     total_players = len(filtered_data)
