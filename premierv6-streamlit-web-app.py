@@ -30,6 +30,7 @@ with st.spinner("Wait for it...", show_time=True):
     import Stats.bayesian_analysis as ba
     import Map_code.hub_spoke_map as hub
     import Data.stadiums_merge as sm
+    import Plot.form_table
     
 
     ########################
@@ -270,7 +271,31 @@ with st.spinner("Wait for it...", show_time=True):
         coaches_df['Name'] = coaches_df['Name'].str.replace('‡', '').str.replace('†', '').str.replace('§', '').str.strip()
        
         return coaches_df
+
     
+    @st.cache_data
+    def create_table_all():
+        table_all_df = pd.read_csv("Data/tables_all.csv")
+        
+        return table_all_df
+    
+    @st.cache_data
+    def create_table_data():
+ 
+        # create a dataframe for each game week from table_all_df and selecting  on gw_num 
+        table_all_df = create_table_all()
+        
+        table_1_game_df = table_all_df[table_all_df["Pl"] == 1]
+        table_2_game_df = table_all_df[table_all_df["Pl"] == 2]
+        table_3_game_df = table_all_df[table_all_df["Pl"] == 3] 
+        table_4_game_df = table_all_df[table_all_df["Pl"] == 4] 
+        table_5_game_df = table_all_df[table_all_df["Pl"] == 5]
+        table_6_game_df = table_all_df[table_all_df["Pl"] == 6]    
+        table_7_game_df = table_all_df[table_all_df["Pl"] == 7]
+        
+        return table_1_game_df,table_2_game_df, table_3_game_df, table_4_game_df, table_5_game_df, table_6_game_df, table_7_game_df
+        
+        
     # Then in main code:
     clf_reduced = load_model()
     all_data_df = load_match_data()
@@ -950,7 +975,9 @@ with st.spinner("Wait for it...", show_time=True):
                           ["Sun 05 Oct 06:00", "Wolves", "Brighton",  "1-1", "Tie", "Away Win"],
                           ["Sun 05 Oct 08:30", "Brentford", "Man City",  "0-1", "Away Win", "Away Win"]]
         gw_7_actuals = pd.DataFrame(gw_7_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
-    
+        
+        gw_7_actuals.info()
+        
         # game week 7
         gw_8_actuals_list = [["Sat 18 Oct 04:30","Nott'ham Forest", "Chelsea", np.nan, np.nan, "Away Win"],
                           ["Sat 18 Oct 07:00", "Brighton", "Newcastle",  np.nan, np.nan, "Away Win"],
@@ -1016,12 +1043,13 @@ with st.spinner("Wait for it...", show_time=True):
                
         # Import table CSV file with all tables in it
         table_all_df = pd.read_csv("Data/tables_all.csv")
+        table_all_df.info()
         
         # create a dataframe for each game week from table_all_df and selecting  on gw_num 
-        table_1_game_df = table_all_df[table_all_df["gw_num"] == 1]
-        table_2_game_df = table_all_df[table_all_df["gw_num"] == 2]
-        table_3_game_df = table_all_df[table_all_df["gw_num"] == 3] 
-        table_4_game_df = table_all_df[table_all_df["gw_num"] == 4] 
+        table_1_game_df = table_all_df[table_all_df["Pl"] == 1]
+        table_2_game_df = table_all_df[table_all_df["Pl"] == 2]
+        table_3_game_df = table_all_df[table_all_df["Pl"] == 3] 
+        table_4_game_df = table_all_df[table_all_df["Pl"] == 4] 
         table_5_game_df = table_all_df[table_all_df["Pl"] == 5]
         table_6_game_df = table_all_df[table_all_df["Pl"] == 6]    
         table_7_game_df = table_all_df[table_all_df["Pl"] == 7]     
@@ -1104,7 +1132,20 @@ with st.spinner("Wait for it...", show_time=True):
         
         st.write("__Team Table Comparison__")
         st.dataframe(table_comp_df, column_order=("Pos","Team","Pl","W","D","L","GF","GA","GD","Pts"), hide_index=True)
-                            
+        
+        # show form guide
+        import Data.create_actuals as actuals
+        import Plot.form_table as form_table
+        
+        # Create actuals and Table data
+        all_actuals_list = actuals.create_all_actuals()
+        table_all_df = create_table_all()
+        
+        # Create Plotly visual
+        fig = form_table.create_enhanced_team_form_table(table_all_df, all_actuals_list)
+        
+        # Display visual
+        st.plotly_chart(fig, use_container_width=True)                    
     
     ################################################
     # Contents of tab2 - Data and Model
@@ -1241,8 +1282,21 @@ with st.spinner("Wait for it...", show_time=True):
     
     with tab4:
         st.session_state.active_tab = "Tab 4"
-        st.write("Under construction")
-    
+        st.write("A form table shows the results of the last 6 matches in order of the latest Table positionining")
+        
+        # import Data.create_actuals as actuals
+        # import Plot.form_table as form_table
+        
+        # # Create actuals and Table data
+        # all_actuals_list = actuals.create_all_actuals()
+        # table_all_df = create_table_all()
+        
+        # # Create Plotly visual
+        # fig = form_table.create_enhanced_team_form_table(table_all_df, all_actuals_list)
+        
+        # # Display visual
+        # st.plotly_chart(fig, use_container_width=True)
+        
     
     ################################################
     # Contents of tab5 - Maps
