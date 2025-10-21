@@ -31,7 +31,7 @@ with st.spinner("Wait for it...", show_time=True):
     import Map_code.hub_spoke_map as hub
     import Data.stadiums_merge as sm
     import Plot.form_table
-    
+    import Data.create_actuals as create_actuals
 
     ########################
     # Import model and data
@@ -83,9 +83,9 @@ with st.spinner("Wait for it...", show_time=True):
         all_players_df['Nation'] = all_players_df['Nation'].str.replace(r'[A-Z]{3}', '', regex=True).str.strip()
         
         all_players_df['Nation'] = all_players_df['Nation'].replace({'eng': 'gb',
-                                                                     'wls': 'gb',
-                                                                     'nir': 'gb',
-                                                                     'sct': 'gb'})
+                                                                     'wls': 'gb-wls',
+                                                                     'nir': 'gb-nir',
+                                                                     'sct': 'gb-sct'})
         
         # Add flag_path URLs
         all_players_df['flag_path'] = all_players_df['Nation'].apply(
@@ -161,10 +161,14 @@ with st.spinner("Wait for it...", show_time=True):
     
     @st.cache_data
     def create_accuracy_data():
-        accuracy_tracking = pd.DataFrame({"Game Week" : ["GW 1", "GW 2", "GW 3", "GW 4", "GW 5", "GW 6", "GW 7"],
-                                          "Accuracy" : [60, 70, 40, 70, 50, 40, 60],
-                                          "Running Median" : [60, 65, 60, 65, 60, 55, 60]})
-        return accuracy_tracking
+        accuracy_tracking = pd.DataFrame({"Game Week" : ["GW 1", "GW 2", "GW 3", "GW 4", "GW 5", "GW 6", "GW 7", "GW 8"],
+                                          "Accuracy" : [60, 70, 40, 70, 50, 40, 60, 40],
+                                          "Mean" : [60, 65, 56.7, 60, 58, 55, 55.7, 53.75],
+                                          "Mean of Mean" : [58.2,58.2,58.2,58.2,58.2,58.2,58.2,58.02]})
+        acc = [60, 70, 40, 70, 50, 40, 60, 40]
+        acc_mean = sum(acc) / len(acc)
+        mean_mean = sum([60, 65, 56.7, 60, 58, 55, 55.7, 53.75]) / len([60, 65, 56.7, 60, 58, 55, 55.7, 53.75])
+        return accuracy_tracking, mean_mean
     
     @st.cache_data
     def create_stadium_data(all_data_df):
@@ -292,9 +296,10 @@ with st.spinner("Wait for it...", show_time=True):
         table_5_game_df = table_all_df[table_all_df["Pl"] == 5]
         table_6_game_df = table_all_df[table_all_df["Pl"] == 6]    
         table_7_game_df = table_all_df[table_all_df["Pl"] == 7]
+        table_8_game_df = table_all_df[table_all_df["Pl"] == 8]
         
-        return table_1_game_df,table_2_game_df, table_3_game_df, table_4_game_df, table_5_game_df, table_6_game_df, table_7_game_df
-        
+        #return table_1_game_df, table_2_game_df, table_3_game_df, table_4_game_df, table_5_game_df, table_6_game_df, table_7_game_df, table_8_game_df
+        return table_8_game_df
         
     # Then in main code:
     clf_reduced = load_model()
@@ -378,7 +383,7 @@ with st.spinner("Wait for it...", show_time=True):
      #                                 "Accuracy" : [60, 70, 40, 70, 50, 40, 60],
      #                                 "Running Median" : [60, 65, 60, 65, 60, 55, 60]})
      
-    accuracy_tracking = create_accuracy_data() 
+    accuracy_tracking, mean_mean = create_accuracy_data() 
     
     ########################
     # Create stadium data
@@ -521,7 +526,12 @@ with st.spinner("Wait for it...", show_time=True):
     # coaches_df['Name'] = coaches_df['Name'].str.replace('‡', '').str.replace('†', '').str.replace('§', '').str.strip()
    
     coaches_df = create_coach_data(countries_df, stadiums_pl) 
-   
+    
+    ################################################
+    # Load Table data
+    ################################################    
+    table_all_df = create_table_all()
+    
     ################################################
     # Create structure of the UX
     ################################################
@@ -867,152 +877,156 @@ with st.spinner("Wait for it...", show_time=True):
              "game_week5",
              "game_week6",
              "game_week7",
-             "game_week8"
+             "game_week8",
+             "game_week9",
+             "game_week10"
              ),  key="gw_num_pick")
+        
         
         # Create dataframes for each game week containing Match ID, Actual  Result, Predicted Result
        
         # Game week 1
-        gw_1_actuals_list = [["-", 1,"Liverpool", "Bournemouth", "4-2", "Home Win", "Home Win"],
-                          ["-", 2,"Aston Villa", "Newcastle", "0-0", "Tie", "Home Win"],
-                          ["-", 3,"Brighton", "Fulham", "1-1", "Tie", "Tie"],
-                          ["-", 4,"Sunderland", "West Ham", "3-0", "Home Win", "Home Win"],
-                          ["-", 5,"Spurs", "Burnley", "3-0", "Home Win", "Home Win"],
-                          ["-", 6,"Wolves", "Man City", "0-4", "Away Win", "Away Win"],
-                          ["-", 7,"Nott'm Forest", "Brentford", "3-1", "Home Win", "Tie"], 
-                          ["-", 8,"Chelsea", "Crystal Palace", "0-0", "Tie", "Home Win"],
-                          ["-", 9,"Man Utd", "Arsenal", "0-1", "Away Win", "Away Win"],
-                          ["-", 10,"Leeds United", "Everton", "1-0", "Home Win", "Tie"]]
-        gw_1_actuals = pd.DataFrame(gw_1_actuals_list, columns=["Date", "match ID","Home","Away", "Score", "Result", "Predicted"])
+        # gw_1_actuals_list = [["-", 1,"Liverpool", "Bournemouth", "4-2", "Home Win", "Home Win"],
+        #                   ["-", 2,"Aston Villa", "Newcastle", "0-0", "Tie", "Home Win"],
+        #                   ["-", 3,"Brighton", "Fulham", "1-1", "Tie", "Tie"],
+        #                   ["-", 4,"Sunderland", "West Ham", "3-0", "Home Win", "Home Win"],
+        #                   ["-", 5,"Spurs", "Burnley", "3-0", "Home Win", "Home Win"],
+        #                   ["-", 6,"Wolves", "Man City", "0-4", "Away Win", "Away Win"],
+        #                   ["-", 7,"Nott'm Forest", "Brentford", "3-1", "Home Win", "Tie"], 
+        #                   ["-", 8,"Chelsea", "Crystal Palace", "0-0", "Tie", "Home Win"],
+        #                   ["-", 9,"Man Utd", "Arsenal", "0-1", "Away Win", "Away Win"],
+        #                   ["-", 10,"Leeds United", "Everton", "1-0", "Home Win", "Tie"]]
+        # gw_1_actuals = pd.DataFrame(gw_1_actuals_list, columns=["Date", "match ID","Home","Away", "Score", "Result", "Predicted"])
     
-        # Game week 2    
-        gw_2_actuals_list = [["-", 1,"West Ham", "Chelsea", "1-5", "Away Win", "Away Win"],
-                          ["-", 2,"Man City", "Spurs", "0-2", "Away Win", "Home Win"],
-                          ["-", 3,"Bournemouth", "Wolves", "1-0", "Home Win", "Home Win"],
-                          ["-", 4,"Brentford", "Aston Villa", "1-0", "Home Win", "Away Win"],
-                          ["-", 5,"Burnley", "Sunderland", "2-0", "Home Win", "Home Win"],
-                          ["-", 6,"Arsenal", "Leeds United", "5-0", "Home Win", "Home Win"],
-                          ["-", 7,"Crystal Palace", "Nott'm Forest", "1-1", "Tie", "Tie"], 
-                          ["-", 8,"Everton", "Brighton", "2-0", "Home Win", "Home Win"],
-                          ["-", 9,"Fulham", "Man Utd", "1-1", "Tie", "Away Win"],
-                          ["-", 10,"Newcastle", "Liverpool", "2-3", "Away Win", "Away Win"]]
-        gw_2_actuals = pd.DataFrame(gw_2_actuals_list, columns=["Date", "match ID","Home","Away", "Score", "Result", "Predicted"])
+        # # Game week 2    
+        # gw_2_actuals_list = [["-", 1,"West Ham", "Chelsea", "1-5", "Away Win", "Away Win"],
+        #                   ["-", 2,"Man City", "Spurs", "0-2", "Away Win", "Home Win"],
+        #                   ["-", 3,"Bournemouth", "Wolves", "1-0", "Home Win", "Home Win"],
+        #                   ["-", 4,"Brentford", "Aston Villa", "1-0", "Home Win", "Away Win"],
+        #                   ["-", 5,"Burnley", "Sunderland", "2-0", "Home Win", "Home Win"],
+        #                   ["-", 6,"Arsenal", "Leeds United", "5-0", "Home Win", "Home Win"],
+        #                   ["-", 7,"Crystal Palace", "Nott'm Forest", "1-1", "Tie", "Tie"], 
+        #                   ["-", 8,"Everton", "Brighton", "2-0", "Home Win", "Home Win"],
+        #                   ["-", 9,"Fulham", "Man Utd", "1-1", "Tie", "Away Win"],
+        #                   ["-", 10,"Newcastle", "Liverpool", "2-3", "Away Win", "Away Win"]]
+        # gw_2_actuals = pd.DataFrame(gw_2_actuals_list, columns=["Date", "match ID","Home","Away", "Score", "Result", "Predicted"])
     
-        # game week 3
-        gw_3_actuals_list = [["-", 1,"Chelsea", "Fulham", "2-0", "Home Win", "Home Win"],
-                          ["-", 2, "Man Utd", "Burnley", "3-2", "Home Win", "Home Win"],
-                          ["-", 3, "Sunderland", "Brentford", "2-1", "Home Win", "Home Win"],
-                          ["-", 4, "Spurs", "Bournemouth", "0-1", "Away Win", "Home Win"],
-                          ["-", 5, "Wolves", "Everton", "2-3", "Away Win", "Home Win"],
-                          ["-", 6, "Leeds United", "Newcastle", "0-0", "Tie", "Away Win"],
-                          ["-", 7, "Brighton", "Man City", "2-1", "Home Win", "Away Win"], 
-                          ["-", 8, "Nott'm Forest", "West Ham", "0-3", "Away Win", "Tie"],
-                          ["-", 9, "Liverpool", "Arsenal", "1-0", "Home Win", "Home Win"],
-                          ["-", 10,"Aston Villa", "Crystal Palace", "0-3", "Away Win", "Home Win"]]
-        gw_3_actuals = pd.DataFrame(gw_3_actuals_list, columns=["Date", "match ID","Home","Away", "Score", "Result", "Predicted"])
+        # # game week 3
+        # gw_3_actuals_list = [["-", 1,"Chelsea", "Fulham", "2-0", "Home Win", "Home Win"],
+        #                   ["-", 2, "Man Utd", "Burnley", "3-2", "Home Win", "Home Win"],
+        #                   ["-", 3, "Sunderland", "Brentford", "2-1", "Home Win", "Home Win"],
+        #                   ["-", 4, "Spurs", "Bournemouth", "0-1", "Away Win", "Home Win"],
+        #                   ["-", 5, "Wolves", "Everton", "2-3", "Away Win", "Home Win"],
+        #                   ["-", 6, "Leeds United", "Newcastle", "0-0", "Tie", "Away Win"],
+        #                   ["-", 7, "Brighton", "Man City", "2-1", "Home Win", "Away Win"], 
+        #                   ["-", 8, "Nott'm Forest", "West Ham", "0-3", "Away Win", "Tie"],
+        #                   ["-", 9, "Liverpool", "Arsenal", "1-0", "Home Win", "Home Win"],
+        #                   ["-", 10,"Aston Villa", "Crystal Palace", "0-3", "Away Win", "Home Win"]]
+        # gw_3_actuals = pd.DataFrame(gw_3_actuals_list, columns=["Date", "match ID","Home","Away", "Score", "Result", "Predicted"])
     
-        # game week 4
-        gw_4_actuals_list = [["-", 1,"Arsenal", "Nott'm Forest", "3-0", "Home Win", "Home Win"],
-                        ["-", 2,"Bournemouth", "Brighton", "2-1", "Home Win", "Away Win"],
-                        ["-", 3,"Crystal Palace", "Sunderland", "0-0", "Tie", "Tie"],
-                        ["-", 4,"Everton", "Aston Villa", "0-0", "Tie", "Away Win"],
-                        ["-", 5,"Fulham", "Leeds United", "1-0", "Home Win", "Home Win"],
-                        ["-", 6,"Newcastle", "Wolves", "1-0", "Home Win", "Home Win"],
-                        ["-", 7,"West Ham", "Spurs", "0-3", "Away Win", "Away Win"],
-                        ["-", 8,"Brentford", "Chelsea", "2-2", "Tie", "Away Win"],
-                        ["-", 9,"Burnley", "Liverpool", "0-1", "Away Win", "Away Win"],
-                        ["-", 10,"Man City", "Man Utd", "3-0", "Home Win", "Home Win"]]
-        gw_4_actuals = pd.DataFrame(gw_4_actuals_list, columns=["Date", "match ID","Home","Away", "Score", "Result", "Predicted"])
+        # # game week 4
+        # gw_4_actuals_list = [["-", 1,"Arsenal", "Nott'm Forest", "3-0", "Home Win", "Home Win"],
+        #                 ["-", 2,"Bournemouth", "Brighton", "2-1", "Home Win", "Away Win"],
+        #                 ["-", 3,"Crystal Palace", "Sunderland", "0-0", "Tie", "Tie"],
+        #                 ["-", 4,"Everton", "Aston Villa", "0-0", "Tie", "Away Win"],
+        #                 ["-", 5,"Fulham", "Leeds United", "1-0", "Home Win", "Home Win"],
+        #                 ["-", 6,"Newcastle", "Wolves", "1-0", "Home Win", "Home Win"],
+        #                 ["-", 7,"West Ham", "Spurs", "0-3", "Away Win", "Away Win"],
+        #                 ["-", 8,"Brentford", "Chelsea", "2-2", "Tie", "Away Win"],
+        #                 ["-", 9,"Burnley", "Liverpool", "0-1", "Away Win", "Away Win"],
+        #                 ["-", 10,"Man City", "Man Utd", "3-0", "Home Win", "Home Win"]]
+        # gw_4_actuals = pd.DataFrame(gw_4_actuals_list, columns=["Date", "match ID","Home","Away", "Score", "Result", "Predicted"])
         
-        # game week 5
-        gw_5_actuals_list = [["Sat 20 Sep 04:30","Liverpool", "Everton", "2-1", "Home Win", "Home Win"],
-                          ["Sat 20 Sep 07:00", "Brighton", "Spurs", "2-2", "Tie", "Away Win"],
-                          ["Sat 20 Sep 07:00", "Burnley", "Nott'm Forest", "1-1", "Tie", "Tie"],
-                          ["Sat 20 Sep 07:00", "West Ham", "Crystal Palace", "1-2",  "Away Win", "Away Win"],
-                          ["Sat 20 Sep 07:00", "Wolves", "Leeds Utd", "1-3",  "Away Win", "Away Win"],
-                          ["Sat 20 Sep 09:30", "Man Utd", "Chelsea", "2-1",  "Home Win", "Away Win"],
-                          ["Sat 20 Sep 12:00", "Fulham", "Brentford", "3-1",  "Home Win", "Home Win"], 
-                          ["Sun 21 Sep 06:00", "Bournemouth", "Newcastle", "0-0",  "Tie", "Away Win"],
-                          ["Sun 21 Sep 06:00", "Sunderland", "Aston Villa", "1-1",  "Tie", "Away Win"],
-                          ["Sun 21 Sep 08:30", "Arsenal", "Man City", "1-1",  "Tie", "Away Win"]]
-        gw_5_actuals = pd.DataFrame(gw_5_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+        # # game week 5
+        # gw_5_actuals_list = [["Sat 20 Sep 04:30","Liverpool", "Everton", "2-1", "Home Win", "Home Win"],
+        #                   ["Sat 20 Sep 07:00", "Brighton", "Spurs", "2-2", "Tie", "Away Win"],
+        #                   ["Sat 20 Sep 07:00", "Burnley", "Nott'm Forest", "1-1", "Tie", "Tie"],
+        #                   ["Sat 20 Sep 07:00", "West Ham", "Crystal Palace", "1-2",  "Away Win", "Away Win"],
+        #                   ["Sat 20 Sep 07:00", "Wolves", "Leeds Utd", "1-3",  "Away Win", "Away Win"],
+        #                   ["Sat 20 Sep 09:30", "Man Utd", "Chelsea", "2-1",  "Home Win", "Away Win"],
+        #                   ["Sat 20 Sep 12:00", "Fulham", "Brentford", "3-1",  "Home Win", "Home Win"], 
+        #                   ["Sun 21 Sep 06:00", "Bournemouth", "Newcastle", "0-0",  "Tie", "Away Win"],
+        #                   ["Sun 21 Sep 06:00", "Sunderland", "Aston Villa", "1-1",  "Tie", "Away Win"],
+        #                   ["Sun 21 Sep 08:30", "Arsenal", "Man City", "1-1",  "Tie", "Away Win"]]
+        # gw_5_actuals = pd.DataFrame(gw_5_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
       
-        # game week 5
-        gw_5_actuals_list = [["Sat 20 Sep 04:30","Liverpool", "Everton", "2-1", "Home Win", "Home Win"],
-                          ["Sat 20 Sep 07:00", "Brighton", "Spurs", "2-2", "Tie", "Away Win"],
-                          ["Sat 20 Sep 07:00", "Burnley", "Nott'm Forest", "1-1", "Tie", "Tie"],
-                          ["Sat 20 Sep 07:00", "West Ham", "Crystal Palace", "1-2",  "Away Win", "Away Win"],
-                          ["Sat 20 Sep 07:00", "Wolves", "Leeds Utd", "1-3",  "Away Win", "Away Win"],
-                          ["Sat 20 Sep 09:30", "Man Utd", "Chelsea", "2-1",  "Home Win", "Away Win"],
-                          ["Sat 20 Sep 12:00", "Fulham", "Brentford", "3-1",  "Home Win", "Home Win"], 
-                          ["Sun 21 Sep 06:00", "Bournemouth", "Newcastle", "0-0",  "Tie", "Away Win"],
-                          ["Sun 21 Sep 06:00", "Sunderland", "Aston Villa", "1-1",  "Tie", "Away Win"],
-                          ["Sun 21 Sep 08:30", "Arsenal", "Man City", "1-1",  "Tie", "Away Win"]]
-        gw_5_actuals = pd.DataFrame(gw_5_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+        # # game week 5
+        # gw_5_actuals_list = [["Sat 20 Sep 04:30","Liverpool", "Everton", "2-1", "Home Win", "Home Win"],
+        #                   ["Sat 20 Sep 07:00", "Brighton", "Spurs", "2-2", "Tie", "Away Win"],
+        #                   ["Sat 20 Sep 07:00", "Burnley", "Nott'm Forest", "1-1", "Tie", "Tie"],
+        #                   ["Sat 20 Sep 07:00", "West Ham", "Crystal Palace", "1-2",  "Away Win", "Away Win"],
+        #                   ["Sat 20 Sep 07:00", "Wolves", "Leeds Utd", "1-3",  "Away Win", "Away Win"],
+        #                   ["Sat 20 Sep 09:30", "Man Utd", "Chelsea", "2-1",  "Home Win", "Away Win"],
+        #                   ["Sat 20 Sep 12:00", "Fulham", "Brentford", "3-1",  "Home Win", "Home Win"], 
+        #                   ["Sun 21 Sep 06:00", "Bournemouth", "Newcastle", "0-0",  "Tie", "Away Win"],
+        #                   ["Sun 21 Sep 06:00", "Sunderland", "Aston Villa", "1-1",  "Tie", "Away Win"],
+        #                   ["Sun 21 Sep 08:30", "Arsenal", "Man City", "1-1",  "Tie", "Away Win"]]
+        # gw_5_actuals = pd.DataFrame(gw_5_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
     
-        # game week 6
-        gw_6_actuals_list = [["Sat 27 Sep 04:30","Brentford", "Man Utd", "3-1", "Home Win", "Away Win"],
-                          ["Sat 27 Sep 07:00", "Chelsea", "Brighton",  "1-3", "Away Win", "Home Win"],
-                          ["Sat 27 Sep 07:00", "Crystal Palace", "Liverpool", "2-1", "Home Win", "Away Win"],
-                          ["Sat 27 Sep 07:00", "Leeds Utd", "Bournemouth",  "2-2", "Tie", "Tie"],
-                          ["Sat 27 Sep 07:00", "Man City", "Burnley",  "5-1", "Home Win", "Home Win"],
-                          ["Sat 27 Sep 09:30", "Nott'm Forest", "Sunderland",  "0-1", "Away Win", "Tie"],
-                          ["Sat 27 Sep 12:00", "Spurs", "Wolves",  "1-1", "Tie", "Home Win"], 
-                          ["Sun 28 Sep 06:00", "Aston Villa", "Fulham",  "3-1", "Home Win", "Home Win"],
-                          ["Sun 28 Sep 08:30", "Newcastle", "Arsenal",  "1-2", "Away Win", "Away Win"],
-                          ["Mon 29 Sep 12:00", "Everton", "West Ham",  "1-1", "Tie", "Away Win"]]
-        gw_6_actuals = pd.DataFrame(gw_6_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+        # # game week 6
+        # gw_6_actuals_list = [["Sat 27 Sep 04:30","Brentford", "Man Utd", "3-1", "Home Win", "Away Win"],
+        #                   ["Sat 27 Sep 07:00", "Chelsea", "Brighton",  "1-3", "Away Win", "Home Win"],
+        #                   ["Sat 27 Sep 07:00", "Crystal Palace", "Liverpool", "2-1", "Home Win", "Away Win"],
+        #                   ["Sat 27 Sep 07:00", "Leeds Utd", "Bournemouth",  "2-2", "Tie", "Tie"],
+        #                   ["Sat 27 Sep 07:00", "Man City", "Burnley",  "5-1", "Home Win", "Home Win"],
+        #                   ["Sat 27 Sep 09:30", "Nott'm Forest", "Sunderland",  "0-1", "Away Win", "Tie"],
+        #                   ["Sat 27 Sep 12:00", "Spurs", "Wolves",  "1-1", "Tie", "Home Win"], 
+        #                   ["Sun 28 Sep 06:00", "Aston Villa", "Fulham",  "3-1", "Home Win", "Home Win"],
+        #                   ["Sun 28 Sep 08:30", "Newcastle", "Arsenal",  "1-2", "Away Win", "Away Win"],
+        #                   ["Mon 29 Sep 12:00", "Everton", "West Ham",  "1-1", "Tie", "Away Win"]]
+        # gw_6_actuals = pd.DataFrame(gw_6_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
         
-        # game week 7
-        gw_7_actuals_list = [["Fri 03 Oct 04:30","Bournwmouth", "Fulham", "3-1", "Home Win", "Tie"],
-                          ["Sat 04 Oct 12:00", "Leeds", "Spurs",  "1-2", "Away Win", "Away Win"],
-                          ["Sat 04 Oct 07:00", "Arsenal", "West Ham", "2-0", "Home Win", "Home Win"],
-                          ["Sat 04 Oct 07:00", "Man Utd", "Sunderland",  "2-0", "Home Win", "Home Win"],
-                          ["Sat 04 Oct 09:30", "Chelsea", "Liverpool",  "2-1", "Home Win", "Away Win"],
-                          ["Sun 05 Oct 06:00", "Aston Villa", "Burnley",  "2-1", "Home Win", "Home Win"],
-                          ["Sun 05 Oct 06:00", "Everton", "Crystal Palace",  "2-1", "Home Win", "Tie"], 
-                          ["Sun 05 Oct 06:00", "Newcastle", "Nott'm Forest",  "2-0", "Home Win", "Home Win"],
-                          ["Sun 05 Oct 06:00", "Wolves", "Brighton",  "1-1", "Tie", "Away Win"],
-                          ["Sun 05 Oct 08:30", "Brentford", "Man City",  "0-1", "Away Win", "Away Win"]]
-        gw_7_actuals = pd.DataFrame(gw_7_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+        # # game week 7
+        # gw_7_actuals_list = [["Fri 03 Oct 04:30","Bournwmouth", "Fulham", "3-1", "Home Win", "Tie"],
+        #                   ["Sat 04 Oct 12:00", "Leeds", "Spurs",  "1-2", "Away Win", "Away Win"],
+        #                   ["Sat 04 Oct 07:00", "Arsenal", "West Ham", "2-0", "Home Win", "Home Win"],
+        #                   ["Sat 04 Oct 07:00", "Man Utd", "Sunderland",  "2-0", "Home Win", "Home Win"],
+        #                   ["Sat 04 Oct 09:30", "Chelsea", "Liverpool",  "2-1", "Home Win", "Away Win"],
+        #                   ["Sun 05 Oct 06:00", "Aston Villa", "Burnley",  "2-1", "Home Win", "Home Win"],
+        #                   ["Sun 05 Oct 06:00", "Everton", "Crystal Palace",  "2-1", "Home Win", "Tie"], 
+        #                   ["Sun 05 Oct 06:00", "Newcastle", "Nott'm Forest",  "2-0", "Home Win", "Home Win"],
+        #                   ["Sun 05 Oct 06:00", "Wolves", "Brighton",  "1-1", "Tie", "Away Win"],
+        #                   ["Sun 05 Oct 08:30", "Brentford", "Man City",  "0-1", "Away Win", "Away Win"]]
+        # gw_7_actuals = pd.DataFrame(gw_7_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
         
-        gw_7_actuals.info()
+        # gw_7_actuals.info()
         
-        # game week 7
-        gw_8_actuals_list = [["Sat 18 Oct 04:30","Nott'ham Forest", "Chelsea", np.nan, np.nan, "Away Win"],
-                          ["Sat 18 Oct 07:00", "Brighton", "Newcastle",  np.nan, np.nan, "Away Win"],
-                          ["Sat 18 Oct 07:00", "Burnley", "Leeds", np.nan, np.nan, "Tie"],
-                          ["Sat 18 Oct 07:00", "Crystal Palace", "Bournemouth",  np.nan, np.nan, "Tie"],
-                          ["Sat 18 Oct 07:00", "Man City", "Everton",  np.nan, np.nan, "Home Win"],
-                          ["Sat 18 Oct 07:00", "Sunderland", "Wolves",  np.nan, np.nan, "Tie"],
-                          ["Sat 18 Oct 09:30", "Fulham", "Arsenal",  np.nan, np.nan, "Away Win"], 
-                          ["Sun 19 Oct 06:00", "Spurs", "Aston Villa",  np.nan, np.nan, "Home Win"],
-                          ["Sun 19 Oct 08:30", "Liverpool", "Man Utd",  np.nan, np.nan, "Home Win"],
-                          ["Mon 20 Oct 12:00", "West Ham", "Brentoford",  np.nan, np.nan, "Tie"]]
-        gw_8_actuals = pd.DataFrame(gw_8_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+        # # game week 7
+        # gw_8_actuals_list = [["Sat 18 Oct 04:30","Nott'ham Forest", "Chelsea", np.nan, np.nan, "Away Win"],
+        #                   ["Sat 18 Oct 07:00", "Brighton", "Newcastle",  np.nan, np.nan, "Away Win"],
+        #                   ["Sat 18 Oct 07:00", "Burnley", "Leeds", np.nan, np.nan, "Tie"],
+        #                   ["Sat 18 Oct 07:00", "Crystal Palace", "Bournemouth",  np.nan, np.nan, "Tie"],
+        #                   ["Sat 18 Oct 07:00", "Man City", "Everton",  np.nan, np.nan, "Home Win"],
+        #                   ["Sat 18 Oct 07:00", "Sunderland", "Wolves",  np.nan, np.nan, "Tie"],
+        #                   ["Sat 18 Oct 09:30", "Fulham", "Arsenal",  np.nan, np.nan, "Away Win"], 
+        #                   ["Sun 19 Oct 06:00", "Spurs", "Aston Villa",  np.nan, np.nan, "Home Win"],
+        #                   ["Sun 19 Oct 08:30", "Liverpool", "Man Utd",  np.nan, np.nan, "Home Win"],
+        #                   ["Mon 20 Oct 12:00", "West Ham", "Brentoford",  np.nan, np.nan, "Tie"]]
+        # gw_8_actuals = pd.DataFrame(gw_8_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
             
         # Only use to post special notes about matches.  Otherwise keep False.
         include_note = True
         gw_note = "game_week8"
         note = "The Crystal Palace V Bournemouth match will be close with Bournemouth possibly pulling out a Win. \nPrediction is a Tie, but I am watching this one closely for Bournemouth Win. \nSame goes for the Sunderland v Wolves match.  Sunderland is playing wel."
         # mapping of game selection text to the correct dataframe
-        actuals_week_mapping = {
-            "game_week1": gw_1_actuals,
-            "game_week2": gw_2_actuals,
-            "game_week3": gw_3_actuals,
-            "game_week4": gw_4_actuals, 
-            "game_week5": gw_5_actuals,
-            "game_week6": gw_6_actuals,
-            "game_week7": gw_7_actuals,
-            "game_week8": gw_8_actuals
-        }
+        # actuals_week_mapping = {
+        #     "game_week1": gw_1_actuals,
+        #     "game_week2": gw_2_actuals,
+        #     "game_week3": gw_3_actuals,
+        #     "game_week4": gw_4_actuals, 
+        #     "game_week5": gw_5_actuals,
+        #     "game_week6": gw_6_actuals,
+        #     "game_week7": gw_7_actuals,
+        #     "game_week8": gw_8_actuals
+        # }
         
         # Display Actual information
         
         st.subheader("Schedule with Actual VS. Predicted")
         
         # Get the selected DataFrame and display it
-        selected_dataframe = actuals_week_mapping.get(gw_num_pick)
+        selected_dataframe = getattr(create_actuals, gw_num_pick)()
+        
         if selected_dataframe is not None:
             if  selected_dataframe.isna().sum().sum() > 0:
                 predict_calc_df = selected_dataframe.dropna(how = "any" )
@@ -1030,6 +1044,7 @@ with st.spinner("Wait for it...", show_time=True):
                 st.write("**Accuracy Tracking**")
                 accuracy_tracking_chart = accuracy_tracking.set_index("Game Week")
                 st.line_chart(accuracy_tracking_chart)
+                st.write(f"Mean of Mean of the Accuracy: {mean_mean}")
             else:
                 styled_df = selected_dataframe.style.apply(ts.highlight_multiple_conditions, axis=1)        
                 st.dataframe(styled_df, column_order= ("Date","Home","Away", "Score", "Predicted"), hide_index=True)
@@ -1042,17 +1057,18 @@ with st.spinner("Wait for it...", show_time=True):
             st.text("Predicted correct accuracy: NONE")
                
         # Import table CSV file with all tables in it
-        table_all_df = pd.read_csv("Data/tables_all.csv")
-        table_all_df.info()
+        # table_all_df = pd.read_csv("Data/tables_all.csv")
         
-        # create a dataframe for each game week from table_all_df and selecting  on gw_num 
+        # create a dataframe for each game week from table_all_df and selecting  on gw_num.
+        # I am not sure why this needs to be here instead of making use of the create_table_data().
         table_1_game_df = table_all_df[table_all_df["Pl"] == 1]
         table_2_game_df = table_all_df[table_all_df["Pl"] == 2]
         table_3_game_df = table_all_df[table_all_df["Pl"] == 3] 
         table_4_game_df = table_all_df[table_all_df["Pl"] == 4] 
         table_5_game_df = table_all_df[table_all_df["Pl"] == 5]
         table_6_game_df = table_all_df[table_all_df["Pl"] == 6]    
-        table_7_game_df = table_all_df[table_all_df["Pl"] == 7]     
+        table_7_game_df = table_all_df[table_all_df["Pl"] == 7]   
+        table_8_game_df = table_all_df[table_all_df["Pl"] == 8] 
         
         # Mapping for selecte gameweek to correct table dataframe
         table_mapping = {
@@ -1063,6 +1079,7 @@ with st.spinner("Wait for it...", show_time=True):
             "post game week 5": table_5_game_df,
             "post game week 6": table_6_game_df,
             "post game week 7": table_7_game_df,
+            "post game week 8": table_8_game_df,
             # "post game week 8": table_6_game_df,
             # "post game week 9": table_6_game_df,
             # "post game week 10": table_6_game_df,
@@ -1091,7 +1108,7 @@ with st.spinner("Wait for it...", show_time=True):
              "post game week 5",
              "post game week 6",
              "post game week 7",
-             # "post game week 8",
+             "post game week 8"
              # "post game week 9",
              # "post game week 10",
              # "post game week 11",
@@ -1553,9 +1570,9 @@ with st.spinner("Wait for it...", show_time=True):
             st.write("**The Team and Position** filter have ***All*** options to see all in that filter.")
             st.write("**To not filter by a stat** simply set the minimum value to 0 for any stat.")
             st.write("**The columns on the table** also allow sorting ascending or descending by clicking on the the 3 dots next to the name.")
-            team_filter = st.selectbox("Select Team", ["All"] + list(all_players_df['Team'].unique()))
-            position_filter = st.selectbox("Select Position", ["All"] + list(all_players_df['Pos'].unique()))
-            country_filter = st.selectbox("Select Country From", ["All"] + list(all_players_df['name'].unique()))
+            team_filter = st.selectbox("Select Team", ["All"] + sorted(all_players_df['Team'].unique()))
+            position_filter = st.selectbox("Select Position", ["All"] + sorted(all_players_df['Pos'].unique()))
+            country_filter = st.selectbox("Select Country From", ["All"] + sorted(all_players_df['name'].unique()))
             stat_name = st.selectbox("Select Stat", ['MP', 'Age',  'MP', 'Gls', 'Ast', 'Min', '90s', 'Starts',
                    'Subs', 'unSub', 'G+A', 'G-PK', 'PK', 'PKatt', 'PKm'])
             stat_value = st.number_input("Minimum Value", value=0)
