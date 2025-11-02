@@ -1565,14 +1565,18 @@ with st.spinner("Wait for it...", show_time=True):
         
         # Create form
         
+        team_options = ['All'] + sorted(all_players_df['Team'].unique().tolist())
+        position_options = ['All'] + sorted(all_players_df['Pos'].unique().tolist())
+        country_options = ['All'] + sorted(all_players_df['name'].unique().tolist())
+
         with st.form("filter_form"):
             st.write("**Make selections to filter players and click the Filter Data button to see the table.**")
             st.write("**The Team and Position** filter have ***All*** options to see all in that filter.")
             st.write("**To not filter by a stat** simply set the minimum value to 0 for any stat.")
             st.write("**The columns on the table** also allow sorting ascending or descending by clicking on the the 3 dots next to the name.")
-            team_filter = st.selectbox("Select Team", ["All"] + sorted(all_players_df['Team'].unique()))
-            position_filter = st.selectbox("Select Position", ["All"] + sorted(all_players_df['Pos'].unique()))
-            country_filter = st.selectbox("Select Country From", ["All"] + sorted(all_players_df['name'].unique()))
+            team_filter = st.selectbox("Select Team", team_options)
+            position_filter = st.selectbox("Select Position", position_options)
+            country_filter = st.selectbox("Select Country From", country_options)
             stat_name = st.selectbox("Select Stat", ['MP', 'Age',  'MP', 'Gls', 'Ast', 'Min', '90s', 'Starts',
                    'Subs', 'unSub', 'G+A', 'G-PK', 'PK', 'PKatt', 'PKm'])
             stat_value = st.number_input("Minimum Value", value=0)
