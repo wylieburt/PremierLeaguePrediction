@@ -162,13 +162,13 @@ with st.spinner("Wait for it...", show_time=True):
     
     @st.cache_data
     def create_accuracy_data():
-        accuracy_tracking = pd.DataFrame({"Game Week" : ["GW 1", "GW 2", "GW 3", "GW 4", "GW 5", "GW 6", "GW 7", "GW 8"],
-                                          "Accuracy" : [60, 70, 40, 70, 50, 40, 60, 40],
-                                          "Mean" : [60, 65, 56.7, 60, 58, 55, 55.7, 53.75],
-                                          "Mean of Mean" : [58.2,58.2,58.2,58.2,58.2,58.2,58.2,58.02]})
-        acc = [60, 70, 40, 70, 50, 40, 60, 40]
+        accuracy_tracking = pd.DataFrame({"Game Week" : ["GW 1", "GW 2", "GW 3", "GW 4", "GW 5", "GW 6", "GW 7", "GW 8", "GW 9"],
+                                          "Accuracy" : [60, 70, 40, 70, 50, 40, 60, 40, 40],
+                                          "Mean" : [60, 65, 56.7, 60, 58, 55, 55.7, 53.75, 52.22],
+                                          "Mean of Mean" : [58.2,58.2,58.2,58.2,58.2,58.2,58.2,58.02, 57.37]})
+        acc = [60, 70, 40, 70, 50, 40, 60, 40, 40]
         acc_mean = sum(acc) / len(acc)
-        mean_mean = sum([60, 65, 56.7, 60, 58, 55, 55.7, 53.75]) / len([60, 65, 56.7, 60, 58, 55, 55.7, 53.75])
+        mean_mean = sum([60, 65, 56.7, 60, 58, 55, 55.7, 53.75, 52.22]) / len([60, 65, 56.7, 60, 58, 55, 55.7, 53.75, 52.22])
         return accuracy_tracking, mean_mean
     
     @st.cache_data
@@ -298,6 +298,8 @@ with st.spinner("Wait for it...", show_time=True):
         table_6_game_df = table_all_df[table_all_df["Pl"] == 6]    
         table_7_game_df = table_all_df[table_all_df["Pl"] == 7]
         table_8_game_df = table_all_df[table_all_df["Pl"] == 8]
+        table_9_game_df = table_all_df[table_all_df["Pl"] == 9]
+        table_10_game_df = table_all_df[table_all_df["Pl"] == 10]
         
         #return table_1_game_df, table_2_game_df, table_3_game_df, table_4_game_df, table_5_game_df, table_6_game_df, table_7_game_df, table_8_game_df
         return table_8_game_df
@@ -1070,6 +1072,8 @@ with st.spinner("Wait for it...", show_time=True):
         table_6_game_df = table_all_df[table_all_df["Pl"] == 6]    
         table_7_game_df = table_all_df[table_all_df["Pl"] == 7]   
         table_8_game_df = table_all_df[table_all_df["Pl"] == 8] 
+        table_9_game_df = table_all_df[table_all_df["Pl"] == 9] 
+        table_10_game_df = table_all_df[table_all_df["Pl"] == 10] 
         
         # Mapping for selecte gameweek to correct table dataframe
         table_mapping = {
@@ -1081,9 +1085,8 @@ with st.spinner("Wait for it...", show_time=True):
             "post game week 6": table_6_game_df,
             "post game week 7": table_7_game_df,
             "post game week 8": table_8_game_df,
-            # "post game week 8": table_6_game_df,
-            # "post game week 9": table_6_game_df,
-            # "post game week 10": table_6_game_df,
+            "post game week 9": table_9_game_df,
+            "post game week 10": table_10_game_df,
             # "post game week 11": table_3_game_df,
             # "post game week 12": table_3_game_df,
             # "post game week 13": table_3_game_df,
@@ -1109,9 +1112,9 @@ with st.spinner("Wait for it...", show_time=True):
              "post game week 5",
              "post game week 6",
              "post game week 7",
-             "post game week 8"
-             # "post game week 9",
-             # "post game week 10",
+             "post game week 8",
+             "post game week 9",
+             "post game week 10"
              # "post game week 11",
              # "post game week 12",
              # "post game week 13",
