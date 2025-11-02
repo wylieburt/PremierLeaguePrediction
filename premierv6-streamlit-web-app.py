@@ -1162,7 +1162,7 @@ with st.spinner("Wait for it...", show_time=True):
         fig = form_table.create_enhanced_team_form_table(table_all_df, all_actuals_list)
         
         # Display visual
-        st.plotly_chart(fig, use_container_width=True)                    
+        st.plotly_chart(fig, width="stretch")                   
     
     ################################################
     # Contents of tab2 - Data and Model
@@ -1207,7 +1207,7 @@ with st.spinner("Wait for it...", show_time=True):
         team_performance_fig =  pp.team_performance(merged_df)
         tab1, tab2 = st.tabs(["Chart", "Dataframe"])
         tab1.pyplot(team_performance_fig)
-        tab2.dataframe(merged_df, height=250, use_container_width=True)
+        tab2.dataframe(merged_df, height=250, width=200)
     
         ######################
         # TIMESERIES PLOTS
@@ -1531,7 +1531,7 @@ with st.spinner("Wait for it...", show_time=True):
                     
                     fig.update_xaxes(tickangle=-45)
                     
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width="stretch")
                     
                     # Optional: Show additional statistics
                     total_players = len(filtered_data)
@@ -2230,7 +2230,7 @@ with st.spinner("Wait for it...", show_time=True):
             yaxis={'categoryorder': 'category ascending'}
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     
         
         # Distribution of tenure lengths
@@ -2289,7 +2289,7 @@ with st.spinner("Wait for it...", show_time=True):
                 yaxis={'categoryorder': 'array', 'categoryarray': coach_journey.sort_values('Start')['Team'].tolist()}
             )
             
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
             
             # Show detailed table
             st.subheader("Career Details")
@@ -2303,6 +2303,6 @@ with st.spinner("Wait for it...", show_time=True):
                             "Team",
                             help="Badge of the teaam"
                 ),
-            }, use_container_width=True, hide_index=True)
+            }, width=200, hide_index=True)
         
                 
