@@ -10,8 +10,8 @@ def create_all_actuals():
     gw_6_actuals = game_week6()
     gw_7_actuals = game_week7()
     gw_8_actuals = game_week8()
-    #gw_9_actuals = game_week9()
-    #gw_10_actuals = game_week10()
+    gw_9_actuals = game_week9()
+    gw_10_actuals = game_week10()
     
     all_actuals = [gw_1_actuals, 
                    gw_2_actuals, 
@@ -20,9 +20,9 @@ def create_all_actuals():
                    gw_5_actuals, 
                    gw_6_actuals, 
                    gw_7_actuals, 
-                   gw_8_actuals]
-                   #gw_9_actuals,
-                   #gw_10_actuals]
+                   gw_8_actuals,
+                   gw_9_actuals,
+                   gw_10_actuals]
     
     return all_actuals
 
@@ -156,32 +156,32 @@ def game_week8():
 
 def game_week9():
     # game week 8
-    gw_9_actuals_list = [["Fri 24 Oct 12:00","Leeds United", "West Ham United", np.nan, np.nan, "Away Win"],
-                      ["Sat 25 Oct 07:00", "Chelsea", "Sunderland",  np.nan, np.nan, "Home Win"],
-                      ["Sat 25 Oct 07:00", "Newcastle United", "Fulham", np.nan, np.nan, "Tie"],
-                      ["Sat 25 Oct 09:30", "Manchester United", "Brighton & Hove Albion",  np.nan, np.nan, "Home Win"],
-                      ["Sat 25 Oct 12:00", "Brentford", "Liverpool",  np.nan, np.nan, "Away Win"],
-                      ["Sun 26 Oct 07:00", "AFC Bournemouth", "Nottingham Forest",  np.nan, np.nan, "Home Win"],
-                      ["Sun 26 Oct 07:00", "Arsenal", "Crystal Palace",  np.nan, np.nan, "Home Win"], 
-                      ["Sun 26 Oct 07:00", "Aston Villa", "Manchester City",  np.nan, np.nan, "Away Win"],
-                      ["Sun 26 Oct 07:00", "Wolverhampton Wanderers", "Burnley",  np.nan, np.nan, "Home Win"],
-                      ["Sun 26 Oct 09:30", "Everton", "Tottenham Hotspur",  np.nan, np.nan, "Away Win"]]
+    gw_9_actuals_list = [["Fri 24 Oct 12:00","Leeds United", "West Ham United", "2-1", "Home Win", "Tie"],
+                      ["Sat 25 Oct 07:00", "Chelsea", "Sunderland",  "1-2", "Away Win", "Home Win"],
+                      ["Sat 25 Oct 07:00", "Newcastle United", "Fulham", "2-1", "Home Win", "Home Win"],
+                      ["Sat 25 Oct 09:30", "Manchester United", "Brighton & Hove Albion", "4-2", "Home Win", "Home Win"],
+                      ["Sat 25 Oct 12:00", "Brentford", "Liverpool",  "3-2", "Home Win", "Away Win"],
+                      ["Sun 26 Oct 07:00", "AFC Bournemouth", "Nottingham Forest",  "2-0", "Home Win", "Tie"],
+                      ["Sun 26 Oct 07:00", "Arsenal", "Crystal Palace",  "1-0", "Home Win", "Home Win"], 
+                      ["Sun 26 Oct 07:00", "Aston Villa", "Manchester City",  "1-0", "Home Win", "Away Win"],
+                      ["Sun 26 Oct 07:00", "Wolverhampton Wanderers", "Burnley",  "2-3", "Away Win", "Tie"],
+                      ["Sun 26 Oct 09:30", "Everton", "Tottenham Hotspur",  "0-3", "Away Win", "Away Win"]]
     gw_9_actuals = pd.DataFrame(gw_9_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
     
     return gw_9_actuals
 
 def game_week10():
     # game week 8
-    gw_10_actuals_list = [["Sat 1 Nov 08:00","Brighton & Hove Albion", "Leeds United", np.nan, np.nan, "Home Win"],
-                      ["Sat 1 Nov 08:00", "Burnley", "Arsenal",  np.nan, np.nan, "Away Win"],
-                      ["Sat 1 Nov 08:00", "Crystal Palace", "Brentford", np.nan, np.nan, "Tie"],
-                      ["Sat 1 Nov 08:00", "Fulham", "Wolverhampton Wanderers",  np.nan, np.nan, "Home Win"],
-                      ["Sat 1 Nov 08:00", "Nottingham Forest", "Manchester United",  np.nan, np.nan, "Away Win"],
-                      ["Sat 1 Nov 10:30", "Tottenham Hotspur", "Chelsea",  np.nan, np.nan, "Away Win"],
-                      ["Sat 1 Nov 13:00", "Liverpool", "Aston Villa",  np.nan, np.nan, "Home Win"], 
+    gw_10_actuals_list = [["Sat 1 Nov 08:00","Brighton & Hove Albion", "Leeds United", "3-0", "Home Win", "Tie"],
+                      ["Sat 1 Nov 08:00", "Burnley", "Arsenal",  "0-2", "Away Win", "Away Win"],
+                      ["Sat 1 Nov 08:00", "Crystal Palace", "Brentford", "2-0", "Home Win", "Tie"],
+                      ["Sat 1 Nov 08:00", "Fulham", "Wolverhampton Wanderers",  "3-0", "Home Win", "Tie"],
+                      ["Sat 1 Nov 08:00", "Nottingham Forest", "Manchester United",  "2-2", "Tie", "Away Win"],
+                      ["Sat 1 Nov 10:30", "Tottenham Hotspur", "Chelsea",  "0-1", "Away Win", "Away Win"],
+                      ["Sat 1 Nov 13:00", "Liverpool", "Aston Villa",  "2-0", "Home Win", "Home Win"], 
                       ["Sun 2 Nov 06:00", "West Ham United", "Newcastle United",  np.nan, np.nan, "Away Win"],
                       ["Sun 2 Nov 08:30", "Manchester City", "AFC Bournemouth",  np.nan, np.nan, "Home Win"],
-                      ["Mon 3 Nov 12:00", "Sunderland", "Everton",  np.nan, np.nan, "Home Win"]]
+                      ["Mon 3 Nov 12:00", "Sunderland", "Everton",  np.nan, np.nan, "Tie"]]
     gw_10_actuals = pd.DataFrame(gw_10_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
     
     return gw_10_actuals
