@@ -110,6 +110,7 @@ with st.spinner("Wait for it...", show_time=True):
         
         all_players_df = all_players_df.merge(countries_df[['country', 'latitude', 'longitude', 'name']], how="left", left_on='Nation', right_on='country')
         
+        all_players_df.isna().sum()
         return all_players_df
     
     @st.cache_data
@@ -1567,7 +1568,7 @@ with st.spinner("Wait for it...", show_time=True):
         
         team_options = ['All'] + sorted(all_players_df['Team'].unique().tolist())
         position_options = ['All'] + sorted(all_players_df['Pos'].unique().tolist())
-        country_options = ['All'] + sorted(all_players_df['name'].unique().tolist())
+        country_options = ['All'] + sorted(all_players_df['name'].dropna().unique().tolist())
 
         with st.form("filter_form"):
             st.write("**Make selections to filter players and click the Filter Data button to see the table.**")
