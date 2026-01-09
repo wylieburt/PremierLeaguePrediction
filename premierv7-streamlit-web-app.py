@@ -635,7 +635,7 @@ with st.spinner("Wait for it...", show_time=True):
                 # to make sure the averages for that team are reliable.  This is more pronounced
                 # for the teams that are newer to the premier league.
                 
-                if (len(tmp_team1) < 50) | (len(tmp_team2) < 50):
+                if (len(tmp_team1) < 0) | (len(tmp_team2) < 0):
                     bay_application = 'Applying Bayesien Shrinkage due to the imbalance of the number in matches of each team in historic data'
                     
                     # Convert DataFrames to list of lists format expected by Bayesian analyzer
