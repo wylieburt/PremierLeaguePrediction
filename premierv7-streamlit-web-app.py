@@ -312,7 +312,7 @@ with st.spinner("Wait for it...", show_time=True):
     
     
     #clf_reduced = joblib.load('Models/premier_random_forest_2020_20250931_prediction.joblib')
-    clf_reduced_name = 'premier_random_forest_2020_20250931'
+    clf_reduced_name = 'premier_random_forest_2025_20260108'
     #data_for_avg = joblib.load('Data/premier_random_forest_2020_20250931_prediction_data.joblib')
     
     ########################
@@ -618,7 +618,7 @@ with st.spinner("Wait for it...", show_time=True):
                 # Remove results feature, not needed for creating averages
                 data_for_avg.drop(['Result'], axis=1, inplace = True)
                 
-                # First collect all data for each team in to separate dataframes.
+                # First collect all data for each team in to sepa"rate dataframes.
                 tmp_team1 = data_for_avg[data_for_avg['Team'] == team1_name].copy()
                 tmp_team1.drop(['Team'], axis=1, inplace = True)
                 tmp_team1_mean_disp = tmp_team1.mean().to_frame().T
@@ -771,13 +771,12 @@ with st.spinner("Wait for it...", show_time=True):
                     st.write("Mean average of each team __before__ any processing:")
                     
                     df_transposed = original_combined_avg_disp.transpose()
-    
-    
+
                     # Set the first row (index 0, which is 'Team') as column names
-                    df_transposed.columns = df_transposed.iloc[6]
+                    df_transposed.columns = df_transposed.iloc[5]
                    
                     # Drop the 'Team' row since it's now the column names
-                    df_transposed = df_transposed.drop(df_transposed.index[6])
+                    df_transposed = df_transposed.drop(df_transposed.index[5])
     
     
                     df_transposed["Diff"] = df_transposed[team1_name] - df_transposed[team2_name]
@@ -791,10 +790,10 @@ with st.spinner("Wait for it...", show_time=True):
                     df_transposed = combined_avg.transpose()
     
                     # Set the first row (index 0, which is 'Team') as column names
-                    df_transposed.columns = df_transposed.iloc[6]
+                    df_transposed.columns = df_transposed.iloc[5]
                    
                     # Drop the 'Team' row since it's now the column names
-                    df_transposed = df_transposed.drop(df_transposed.index[6])
+                    df_transposed = df_transposed.drop(df_transposed.index[5])
     
                     df_transposed["Diff"] = df_transposed[team1_name] - df_transposed[team2_name]
                     styled_df = df_transposed.style.apply(ts.highlight_max, axis=1)
@@ -809,7 +808,7 @@ with st.spinner("Wait for it...", show_time=True):
                     x = np.arange(len(stats))  # the label locations (one for each stat)
                     width = 0.35  # the width of the bars
                     
-                    fig, ax = plt.subplots(layout='constrained', figsize=(10, 6))
+                    fig, ax = plt.subplots(layout='constrained', figsize=(10, 5))
                     
                     # Create bars for each team
                     for i, team in enumerate(teams):
