@@ -12,6 +12,18 @@ def create_all_actuals():
     gw_8_actuals = game_week8()
     gw_9_actuals = game_week9()
     gw_10_actuals = game_week10()
+    gw_11_actuals = game_week11()
+    gw_12_actuals = game_week12()
+    gw_13_actuals = game_week13()
+    gw_14_actuals = game_week14()
+    gw_15_actuals = game_week15()
+    gw_16_actuals = game_week16()
+    gw_17_actuals = game_week17()
+    gw_18_actuals = game_week18()
+    gw_19_actuals = game_week19()
+    gw_20_actuals = game_week20()
+    gw_21_actuals = game_week21()
+    gw_22_actuals = game_week22()
     
     all_actuals = [gw_1_actuals, 
                    gw_2_actuals, 
@@ -22,7 +34,19 @@ def create_all_actuals():
                    gw_7_actuals, 
                    gw_8_actuals,
                    gw_9_actuals,
-                   gw_10_actuals]
+                   gw_10_actuals,
+                   gw_11_actuals,
+                   gw_12_actuals,
+                   gw_13_actuals,
+                   gw_14_actuals,
+                   gw_15_actuals,
+                   gw_16_actuals,
+                   gw_17_actuals,
+                   gw_18_actuals,
+                   gw_19_actuals,
+                   gw_20_actuals,
+                   gw_21_actuals,
+                   gw_22_actuals]
     
     return all_actuals
 
@@ -179,13 +203,201 @@ def game_week10():
                       ["Sat 1 Nov 08:00", "Nottingham Forest", "Manchester United",  "2-2", "Tie", "Away Win"],
                       ["Sat 1 Nov 10:30", "Tottenham Hotspur", "Chelsea",  "0-1", "Away Win", "Away Win"],
                       ["Sat 1 Nov 13:00", "Liverpool", "Aston Villa",  "2-0", "Home Win", "Home Win"], 
-                      ["Sun 2 Nov 06:00", "West Ham United", "Newcastle United",  np.nan, np.nan, "Away Win"],
-                      ["Sun 2 Nov 08:30", "Manchester City", "AFC Bournemouth",  np.nan, np.nan, "Home Win"],
-                      ["Mon 3 Nov 12:00", "Sunderland", "Everton",  np.nan, np.nan, "Tie"]]
+                      ["Sun 2 Nov 06:00", "West Ham United", "Newcastle United",  "3-1", "Home Win", "Away Win"],
+                      ["Sun 2 Nov 08:30", "Manchester City", "AFC Bournemouth",  "3-1", "Home Win", "Home Win"],
+                      ["Mon 3 Nov 12:00", "Sunderland", "Everton",  "1-1", "Tie", "Tie"]]
     gw_10_actuals = pd.DataFrame(gw_10_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
     
     return gw_10_actuals
 
-
-
+def game_week11():
+    # game week 8
+    gw_11_actuals_list = [["Sat 8 Nov","Spurs", "Man United", "2-2", "Tie", "Away Win"],
+                      ["Sat 8 Nov", "Everton", "Fulham",  "2-0", "Home Win", "Tie"],
+                      ["Sat 8 Nov", "West Ham", "Burnley", "3-2", "Home Win", "Tie"],
+                      ["Sat 8 Nov", "Sunderland", "Arsenal",  "2-2", "TIe", "Away Win"],
+                      ["Sat 8 Nov", "Chelsea", "Wolves",  "3-0", "Home Win", "Home Win"],
+                      ["Sun 9 Nov", "Aston Villa", "Bournemouth",  "4-0", "Home Win", "Home Win"],
+                      ["Sun 9 Nov", "Brentford", "Newcastle",  "3-1", "Home Win", "Home Win"], 
+                      ["Sun 9 Nov", "Crystal Palace", "Brighton",  "0-0", "Tie", "Tie"],
+                      ["Sun 9 Nov", "Nott'm Forest", "Leeds",  "3-1", "Home Win", "Tie"],
+                      ["Sun 9 Nov", "Man City", "Liverpool",  "3-0", "Home Win", "Home Win"]]
+    gw_11_actuals = pd.DataFrame(gw_11_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
     
+    return gw_11_actuals
+
+def game_week12():
+    # game week 8
+    gw_12_actuals_list = [["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"], 
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"]]
+    gw_12_actuals = pd.DataFrame(gw_12_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+    
+    return gw_12_actuals    
+
+def game_week13():
+    # game week 8
+    gw_13_actuals_list = [["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"], 
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"]]
+    gw_13_actuals = pd.DataFrame(gw_13_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+    
+    return gw_13_actuals   
+
+def game_week14():
+    # game week 8
+    gw_14_actuals_list = [["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"], 
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"]]
+    gw_14_actuals = pd.DataFrame(gw_14_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+    
+    return gw_14_actuals   
+
+def game_week15():
+    # game week 8
+    gw_15_actuals_list = [["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"], 
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"]]
+    gw_15_actuals = pd.DataFrame(gw_15_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+    
+    return gw_15_actuals   
+
+def game_week16():
+    # game week 8
+    gw_16_actuals_list = [["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"], 
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"]]
+    gw_16_actuals = pd.DataFrame(gw_16_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+    
+    return gw_16_actuals   
+
+def game_week17():
+    # game week 8
+    gw_17_actuals_list = [["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"], 
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"]]
+    gw_17_actuals = pd.DataFrame(gw_17_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+    
+    return gw_17_actuals   
+
+def game_week18():
+    # game week 8
+    gw_18_actuals_list = [["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"], 
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"]]
+    gw_18_actuals = pd.DataFrame(gw_18_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+    
+    return gw_18_actuals   
+
+def game_week19():
+    # game week 8
+    gw_19_actuals_list = [["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"], 
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"]]
+    gw_19_actuals = pd.DataFrame(gw_19_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+    
+    return gw_19_actuals   
+
+def game_week20():
+    # game week 8
+    gw_20_actuals_list = [["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"], 
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"]]
+    gw_20_actuals = pd.DataFrame(gw_20_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+    
+    return gw_20_actuals   
+
+def game_week21():
+    # game week 8
+    gw_21_actuals_list = [["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"], 
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"]]
+    gw_21_actuals = pd.DataFrame(gw_21_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+    
+    return gw_21_actuals   
+
+def game_week22():
+    # game week 8
+    gw_22_actuals_list = [["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sat 8 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"], 
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"],
+                      ["Sun 9 Nov", "", "",  "", "", "--"]]
+    gw_22_actuals = pd.DataFrame(gw_22_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+    
+    return gw_22_actuals  
