@@ -162,13 +162,13 @@ with st.spinner("Wait for it...", show_time=True):
     
     @st.cache_data
     def create_accuracy_data():
-        accuracy_tracking = pd.DataFrame({"Game Week" : ["GW 1", "GW 2", "GW 3", "GW 4", "GW 5", "GW 6", "GW 7", "GW 8", "GW 9"],
-                                          "Accuracy" : [60, 70, 40, 70, 50, 40, 60, 40, 40],
-                                          "Mean" : [60, 65, 56.7, 60, 58, 55, 55.7, 53.75, 52.22],
-                                          "Mean of Mean" : [58.2,58.2,58.2,58.2,58.2,58.2,58.2,58.02, 57.37]})
-        acc = [60, 70, 40, 70, 50, 40, 60, 40, 40]
+        accuracy_tracking = pd.DataFrame({"Game Week" : ["GW 01", "GW 02", "GW 03", "GW 04", "GW 05", "GW 06", "GW 07", "GW 08", "GW 09", "GW 10", "GW 11"],
+                                          "Accuracy" : [60, 70, 40, 70, 50, 40, 60, 40, 40, 50, 50],
+                                          "Mean" : [60, 65, 56.7, 60, 58, 55, 55.7, 53.75, 52.22, 52.0, 51.8],
+                                          "Mean of Mean" : [58.2,58.2,58.2,58.2,58.2,58.2,58.2,58.02, 57.37, 57.37, 56.37]})
+        acc = [60, 70, 40, 70, 50, 40, 60, 40, 40, 50, 50]
         acc_mean = sum(acc) / len(acc)
-        mean_mean = sum([60, 65, 56.7, 60, 58, 55, 55.7, 53.75, 52.22]) / len([60, 65, 56.7, 60, 58, 55, 55.7, 53.75, 52.22])
+        mean_mean = sum([60, 65, 56.7, 60, 58, 55, 55.7, 53.75, 52.22, 52.0, 51.8]) / len([60, 65, 56.7, 60, 58, 55, 55.7, 53.75, 52.22, 52.0, 51.8])
         return accuracy_tracking, mean_mean
     
     @st.cache_data
@@ -881,7 +881,19 @@ with st.spinner("Wait for it...", show_time=True):
              "game_week7",
              "game_week8",
              "game_week9",
-             "game_week10"
+             "game_week10",
+             "game_week11",
+             "game_week12",
+             "game_week13",
+             "game_week14",
+             "game_week15",
+             "game_week16",
+             "game_week17",
+             "game_week18",
+             "game_week19",
+             "game_week20",
+             "game_week21",
+             "game_week22",
              ),  key="gw_num_pick")
         
         
@@ -1044,6 +1056,11 @@ with st.spinner("Wait for it...", show_time=True):
                     st.text(f"***Special Note on Predictions:*** \n For {gw_num_pick}: {note}")
                 st.text(f"Predicted correct accuracy: {num_right} of {total} played - {accuracy:.0%}")
                 st.write("**Accuracy Tracking**")
+                
+                accuracy_tracking = accuracy_tracking.sort_values(
+                    'Game Week',
+                    key=lambda x: x.str.extract('(\d+)', expand=False).astype(int)
+                    )
                 accuracy_tracking_chart = accuracy_tracking.set_index("Game Week")
                 st.line_chart(accuracy_tracking_chart)
                 st.write(f"Mean of Mean of the Accuracy: {mean_mean}")
