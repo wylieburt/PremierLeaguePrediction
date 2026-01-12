@@ -162,13 +162,51 @@ with st.spinner("Wait for it...", show_time=True):
     
     @st.cache_data
     def create_accuracy_data():
-        accuracy_tracking = pd.DataFrame({"Game Week" : ["GW 01", "GW 02", "GW 03", "GW 04", "GW 05", "GW 06", "GW 07", "GW 08", "GW 09", "GW 10", "GW 11"],
-                                          "Accuracy" : [60, 70, 40, 70, 50, 40, 60, 40, 40, 50, 50],
-                                          "Mean" : [60, 65, 56.7, 60, 58, 55, 55.7, 53.75, 52.22, 52.0, 51.8],
-                                          "Mean of Mean" : [58.2,58.2,58.2,58.2,58.2,58.2,58.2,58.02, 57.37, 57.37, 56.37]})
-        acc = [60, 70, 40, 70, 50, 40, 60, 40, 40, 50, 50]
+        accuracy_tracking = pd.DataFrame({"Game Week" : ["GW 01", "GW 02", "GW 03", "GW 04", "GW 05", 
+                                                         "GW 06", "GW 07", "GW 08", "GW 09", "GW 10", 
+                                                         "GW 11", "GW 12", "GW 13", "GW 14", "GW 15",
+                                                         "GW 16", "GW 17", "GW 18", "GW 19", "GW 20",
+                                                         "GW 21"],
+                                          
+                                          "Accuracy" : [60, 70, 40, 70, 50, 
+                                                        40, 60, 40, 40, 50, 
+                                                        50, 30, 50, 30, 50,
+                                                        50, 60, 50, 30, 40,
+                                                        40],
+                                          
+                                          "Mean" : [60.0, 65.0, 56.7, 60.0, 58.0, 
+                                                    55.0, 55.7, 53.8, 52.2, 52.0, 
+                                                    51.8, 50.0, 50.0, 48.6, 48.7,
+                                                    48.8, 49.4, 49.4, 48.4, 48.0,
+                                                    47.6],
+                                          
+                                          "Mean of Mean" : [58.2, 58.2, 58.2, 58.2, 58.2,
+                                                            58.2, 58.2, 58.0, 57.4, 57.4, 
+                                                            56.4, 55.8, 53.4, 54.9, 54.5,
+                                                            54.1, 53.9, 53.6, 53.3, 53.1,
+                                                            52.8]})
+        
+        
+        acc = [60, 70, 40, 70, 50, 
+               40, 60, 40, 40, 50, 
+               50, 30, 50, 30, 50,
+               50, 60, 50, 30, 40, 
+               40]
+        
         acc_mean = sum(acc) / len(acc)
-        mean_mean = sum([60, 65, 56.7, 60, 58, 55, 55.7, 53.75, 52.22, 52.0, 51.8]) / len([60, 65, 56.7, 60, 58, 55, 55.7, 53.75, 52.22, 52.0, 51.8])
+        #print(acc_mean)
+        
+        mean_mean = sum([60.0, 65.0, 56.7, 60.0, 58.0, 
+                         55.0, 55.7, 53.8, 52.2, 52.0, 
+                         51.8, 50.0, 50.0, 48.6, 48.7,
+                         48.8, 49.4, 49.4, 48.4, 48.0,
+                         47.6]) / len([60.0, 65.0, 56.7, 60.0, 58.0, 
+                                                         55.0, 55.7, 53.8, 52.2, 52.0, 
+                                                         51.8, 50.0, 50.0, 48.6, 48.7,
+                                                         48.8, 49.4, 49.4, 48.4, 48.0,
+                                                         47.6])
+        #print(mean_mean)
+                                                         
         return accuracy_tracking, mean_mean
     
     @st.cache_data
@@ -300,9 +338,21 @@ with st.spinner("Wait for it...", show_time=True):
         table_8_game_df = table_all_df[table_all_df["Pl"] == 8]
         table_9_game_df = table_all_df[table_all_df["Pl"] == 9]
         table_10_game_df = table_all_df[table_all_df["Pl"] == 10]
+        table_11_game_df = table_all_df[table_all_df["Pl"] == 11]
+        table_12_game_df = table_all_df[table_all_df["Pl"] == 12]
+        table_13_game_df = table_all_df[table_all_df["Pl"] == 13]
+        table_14_game_df = table_all_df[table_all_df["Pl"] == 14]
+        table_15_game_df = table_all_df[table_all_df["Pl"] == 15]
+        table_16_game_df = table_all_df[table_all_df["Pl"] == 16]
+        table_17_game_df = table_all_df[table_all_df["Pl"] == 17]
+        table_18_game_df = table_all_df[table_all_df["Pl"] == 18]
+        table_19_game_df = table_all_df[table_all_df["Pl"] == 19]
+        table_20_game_df = table_all_df[table_all_df["Pl"] == 20]
+        table_21_game_df = table_all_df[table_all_df["Pl"] == 21]
+
         
         #return table_1_game_df, table_2_game_df, table_3_game_df, table_4_game_df, table_5_game_df, table_6_game_df, table_7_game_df, table_8_game_df
-        return table_8_game_df
+        return table_21_game_df
         
     # Then in main code:
     clf_reduced = load_model()
@@ -1090,6 +1140,17 @@ with st.spinner("Wait for it...", show_time=True):
         table_8_game_df = table_all_df[table_all_df["Pl"] == 8] 
         table_9_game_df = table_all_df[table_all_df["Pl"] == 9] 
         table_10_game_df = table_all_df[table_all_df["Pl"] == 10] 
+        table_11_game_df = table_all_df[table_all_df["Pl"] == 11]
+        table_12_game_df = table_all_df[table_all_df["Pl"] == 12]
+        table_13_game_df = table_all_df[table_all_df["Pl"] == 13]
+        table_14_game_df = table_all_df[table_all_df["Pl"] == 14]
+        table_15_game_df = table_all_df[table_all_df["Pl"] == 15]
+        table_16_game_df = table_all_df[table_all_df["Pl"] == 16]
+        table_17_game_df = table_all_df[table_all_df["Pl"] == 17]
+        table_18_game_df = table_all_df[table_all_df["Pl"] == 18]
+        table_19_game_df = table_all_df[table_all_df["Pl"] == 19]
+        table_20_game_df = table_all_df[table_all_df["Pl"] == 20]
+        table_21_game_df = table_all_df[table_all_df["Pl"] == 21]
         
         # Mapping for selecte gameweek to correct table dataframe
         table_mapping = {
@@ -1103,16 +1164,17 @@ with st.spinner("Wait for it...", show_time=True):
             "post game week 8": table_8_game_df,
             "post game week 9": table_9_game_df,
             "post game week 10": table_10_game_df,
-            # "post game week 11": table_3_game_df,
-            # "post game week 12": table_3_game_df,
-            # "post game week 13": table_3_game_df,
-            # "post game week 14": table_3_game_df,
-            # "post game week 15": table_3_game_df,
-            # "post game week 16": table_3_game_df,
-            # "post game week 17": table_3_game_df,
-            # "post game week 18": table_3_game_df,
-            # "post game week 19": table_3_game_df,
-            # "post game week 20": table_3_game_df
+            "post game week 11": table_11_game_df,
+            "post game week 12": table_12_game_df,
+            "post game week 13": table_13_game_df,
+            "post game week 14": table_14_game_df,
+            "post game week 15": table_15_game_df,
+            "post game week 16": table_16_game_df,
+            "post game week 17": table_17_game_df,
+            "post game week 18": table_18_game_df,
+            "post game week 19": table_19_game_df,
+            "post game week 20": table_20_game_df,
+            "post game week 21": table_21_game_df
         }
         
         # Display pick and dataframe
@@ -1130,17 +1192,18 @@ with st.spinner("Wait for it...", show_time=True):
              "post game week 7",
              "post game week 8",
              "post game week 9",
-             "post game week 10"
-             # "post game week 11",
-             # "post game week 12",
-             # "post game week 13",
-             # "post game week 14",
-             # "post game week 15",
-             # "post game week 16",
-             # "post game week 17",
-             # "post game week 18",
-             # "post game week 19",
-             # "post game week 20"
+             "post game week 10",
+             "post game week 11",
+             "post game week 12",
+             "post game week 13",
+             "post game week 14",
+             "post game week 15",
+             "post game week 16",
+             "post game week 17",
+             "post game week 18",
+             "post game week 19",
+             "post game week 20",
+             "post game week 21"
              ),  key="full_tables")
         
         #Compare teams on the table    
