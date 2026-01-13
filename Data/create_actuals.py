@@ -382,16 +382,16 @@ def game_week20():
 
 def game_week21():
     # game week 8
-    gw_21_actuals_list = [["Sat 8 Nov", "", "",  "", "", "--"],
-                      ["Sat 8 Nov", "", "",  "", "", "--"],
-                      ["Sat 8 Nov", "", "",  "", "", "--"],
-                      ["Sat 8 Nov", "", "",  "", "", "--"],
-                      ["Sat 8 Nov", "", "",  "", "", "--"],
-                      ["Sun 9 Nov", "", "",  "", "", "--"],
-                      ["Sun 9 Nov", "", "",  "", "", "--"], 
-                      ["Sun 9 Nov", "", "",  "", "", "--"],
-                      ["Sun 9 Nov", "", "",  "", "", "--"],
-                      ["Sun 9 Nov", "", "",  "", "", "--"]]
+    gw_21_actuals_list = [["Sat 17 Jan", "", "",  "", "", "--"],
+                      ["Sat 17 Jan", "", "",  "", "", "--"],
+                      ["Sat 17 Jan", "", "",  "", "", "--"],
+                      ["Sat 17 Jan", "", "",  "", "", "--"],
+                      ["Sat 17 Jan", "", "",  "", "", "--"],
+                      ["Sat 17 Jan", "", "",  "", "", "--"],
+                      ["Sat 17 Jan", "", "",  "", "", "--"], 
+                      ["Sun 18 Jan", "", "",  "", "", "--"],
+                      ["Sun 18 Jan", "", "",  "", "", "--"],
+                      ["Mon 19 Jan", "", "",  "", "", "--"]]
     gw_21_actuals = pd.DataFrame(gw_21_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
     
     gw_21_actuals = pd.read_csv('Data/gw_21_actuals.csv')
@@ -400,16 +400,16 @@ def game_week21():
 
 def game_week22():
     # game week 8
-    gw_22_actuals_list = [["Sat 8 Nov", "", "",  "", "", "--"],
-                      ["Sat 8 Nov", "", "",  "", "", "--"],
-                      ["Sat 8 Nov", "", "",  "", "", "--"],
-                      ["Sat 8 Nov", "", "",  "", "", "--"],
-                      ["Sat 8 Nov", "", "",  "", "", "--"],
-                      ["Sun 9 Nov", "", "",  "", "", "--"],
-                      ["Sun 9 Nov", "", "",  "", "", "--"], 
-                      ["Sun 9 Nov", "", "",  "", "", "--"],
-                      ["Sun 9 Nov", "", "",  "", "", "--"],
-                      ["Sun 9 Nov", "", "",  "", "", "--"]]
+    gw_22_actuals_list = [["Sat 17 Jan", "Man United", "Man City",  "--", "--", "Home Win"],
+                      ["Sat 17 Jan", "Chelsea", "Brentford", "--", "--", "Away Win"],
+                      ["Sat 17 Jan", "Leeds", "Fulham", "--", "--", "Tie"],
+                      ["Sat 17 Jan", "Liverpool", "Burnley", "--", "--", "Home Win"],
+                      ["Sat 17 Jan", "Sunderland", "Crystal Palace", "--", "--", "Tie"],
+                      ["Sat 17 Jan", "Spurs", "West Ham", "--", "--", "Tie"],
+                      ["Sat 17 Jan", "Nott'm Forest", "Arsenal", "--", "--", "Away Win"], 
+                      ["Sun 18 Jan", "Wolves", "Newcastle", "--", "--", "Away Win"],
+                      ["Sun 18 Jan", "Aston Villa", "Everton", "--", "--", "Home Win"],
+                      ["Mon 19 Jan", "Brighton", "Boutnemouth", "--", "--", "Away Win"]]
     gw_22_actuals = pd.DataFrame(gw_22_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
     
     return gw_22_actuals  
