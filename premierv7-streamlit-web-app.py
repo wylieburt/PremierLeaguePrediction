@@ -725,7 +725,7 @@ with st.spinner("Wait for it...", show_time=True):
                 away_lose, away_tie, away_win = predict_proba[1]
                 
                 # When Win probabilitie are extremely close, fovor the team with the most wins against the other team historically.
-                if (((away_win - home_win) ** 2) * 100) < 0.041:
+                if (((away_win - home_win) ** 2) * 100) < 0.02:
                     favoring = 'Applied do to the closeness of both win probabilites'
                     tmp_match_results = match_result_lookup.loc[(match_result_lookup["Team"].isin([team1_name, team2_name])) & (match_result_lookup["Opp"].isin([team1_name, team2_name]))].reset_index()        
                     result_summary = tmp_match_results.loc[(tmp_match_results["Result"] == "W")].groupby(["Team"])["Result"].value_counts().reset_index()
@@ -783,7 +783,7 @@ with st.spinner("Wait for it...", show_time=True):
                     pick = "Home Win"
                 elif (away_win_prob > home_win_prob) and (away_win_prob > tie_prob):
                     pick = "Away Win"
-                elif (tie_prob > (home_win_prob * 1.2)) and (tie_prob > (away_win_prob * 1.2)):
+                elif (tie_prob > (home_win_prob)) and (tie_prob > (away_win_prob)):
                     pick = "Tie"
                 else:
                     pick = max(home_win_prob, away_win_prob)
