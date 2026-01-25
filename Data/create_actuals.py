@@ -323,6 +323,7 @@ def game_week17():
     gw_17_actuals = pd.DataFrame(gw_17_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
     
     gw_17_actuals = pd.read_csv('Data/gw_17_actuals.csv')
+    
 
     return gw_17_actuals   
 
@@ -400,16 +401,32 @@ def game_week21():
 
 def game_week22():
     # game week 8
-    gw_22_actuals_list = [["Sat 17 Jan", "Man United", "Man City",  "--", "--", "Home Win"],
-                      ["Sat 17 Jan", "Chelsea", "Brentford", "--", "--", "Away Win"],
-                      ["Sat 17 Jan", "Leeds", "Fulham", "--", "--", "Tie"],
-                      ["Sat 17 Jan", "Liverpool", "Burnley", "--", "--", "Home Win"],
-                      ["Sat 17 Jan", "Sunderland", "Crystal Palace", "--", "--", "Tie"],
-                      ["Sat 17 Jan", "Spurs", "West Ham", "--", "--", "Tie"],
-                      ["Sat 17 Jan", "Nott'm Forest", "Arsenal", "--", "--", "Away Win"], 
-                      ["Sun 18 Jan", "Wolves", "Newcastle", "--", "--", "Away Win"],
-                      ["Sun 18 Jan", "Aston Villa", "Everton", "--", "--", "Home Win"],
-                      ["Mon 19 Jan", "Brighton", "Boutnemouth", "--", "--", "Away Win"]]
+    gw_22_actuals_list = [["Sat 17 Jan", "Man United", "Man City",  "2-0", "Home Win", "Home Win"],
+                      ["Sat 17 Jan", "Chelsea", "Brentford", "2-0", "Home Win", "Home Win"],
+                      ["Sat 17 Jan", "Leeds", "Fulham", "1-0", "Home Win", "Tie"],
+                      ["Sat 17 Jan", "Liverpool", "Burnley", "1-1", "Tie", "Home Win"],
+                      ["Sat 17 Jan", "Sunderland", "Crystal Palace", "2-1", "Home Win", "Tie"],
+                      ["Sat 17 Jan", "Spurs", "West Ham", "1-2", "Away Win", "Tie"],
+                      ["Sat 17 Jan", "Nott'm Forest", "Arsenal", "0-0", "Tie", "Away Win"], 
+                      ["Sun 18 Jan", "Wolves", "Newcastle", "0-0", "Tie", "Away Win"],
+                      ["Sun 18 Jan", "Aston Villa", "Everton", "0-1", "Away Win", "Home Win"],
+                      ["Mon 19 Jan", "Brighton", "Bournemouth", "1-1", "Tie", "Away Win"]]
     gw_22_actuals = pd.DataFrame(gw_22_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
     
     return gw_22_actuals  
+
+def game_week23():
+    # game week 8
+    gw_23_actuals_list = [["Sat 24 Jan", "West Ham", "Sunderland",  "3-1", "Home Win", "Tie"],
+                      ["Sat 24 Jan", "Burnley", "Spurs", "2-2", "Tie", "Tie"],
+                      ["Sat 24 Jan", "Fulham", "Brighton", "2-1", "Home Win", "Tie"],
+                      ["Sat 24 Jan", "Man City", "Wolves", "2-0", "Home Win", "Home Win"],
+                      ["Sat 24 Jan", "Bournemouth", "Liverpool", "3-2", "Home Win", "Home Win"],
+                      ["Sun 25 Jan", "Brentford", "Nott'm Forest", "0-2", "Away Win", "Home Win"],
+                      ["Sun 25 Jan", "Crystal Palace", "Chelsea", "1-3", "Away Win", "Away Win"], 
+                      ["Sun 25 Jan", "Newcastle", "Aston Villa", "0-2", "Away Win", "Away Win"],
+                      ["Sun 25 Jan", "Aresenal", "Man Utd", "2-3", "Away Win", "Away Win"],
+                      ["Mon 26 Jan", "Everton", "Leeds", "--", "--", "Tie"]]
+    gw_23_actuals = pd.DataFrame(gw_23_actuals_list, columns=["Date", "Home","Away", "Score", "Result", "Predicted"])
+    
+    return gw_23_actuals  
