@@ -172,26 +172,26 @@ with st.spinner("Wait for it...", show_time=True):
                                                         40, 60, 40, 40, 50, 
                                                         50, 30, 50, 30, 50,
                                                         50, 60, 50, 30, 40,
-                                                        40, 20, 60],
+                                                        40, 20, 70],
                                           
                                           "Mean" : [60.0, 65.0, 56.7, 60.0, 58.0, 
                                                     55.0, 55.7, 53.8, 52.2, 52.0, 
                                                     51.8, 50.0, 50.0, 48.6, 48.7,
                                                     48.8, 49.4, 49.4, 48.4, 48.0,
-                                                    47.6, 46.36, 47],
+                                                    47.6, 46.36, 47.39],
                                           
                                           "Mean of Mean" : [58.2, 58.2, 58.2, 58.2, 58.2,
                                                             58.2, 58.2, 58.0, 57.4, 57.4, 
                                                             56.4, 55.8, 53.4, 54.9, 54.5,
                                                             54.1, 53.9, 53.6, 53.3, 53.1,
-                                                            52.8, 52.5, 52.28]})
+                                                            52.8, 52.5, 52.30]})
         
         
         acc = [60, 70, 40, 70, 50, 
                40, 60, 40, 40, 50, 
                50, 30, 50, 30, 50,
                50, 60, 50, 30, 40, 
-               40, 20, 60]
+               40, 20, 70]
         
         acc_mean = sum(acc) / len(acc)
         print(acc_mean)
@@ -200,11 +200,11 @@ with st.spinner("Wait for it...", show_time=True):
                          55.0, 55.7, 53.8, 52.2, 52.0, 
                          51.8, 50.0, 50.0, 48.6, 48.7,
                          48.8, 49.4, 49.4, 48.4, 48.0,
-                         47.6, 46.36, 46.96]) / len([60.0, 65.0, 56.7, 60.0, 58.0, 
+                         47.6, 46.36, 47.39]) / len([60.0, 65.0, 56.7, 60.0, 58.0, 
                                                          55.0, 55.7, 53.8, 52.2, 52.0, 
                                                          51.8, 50.0, 50.0, 48.6, 48.7,
                                                          48.8, 49.4, 49.4, 48.4, 48.0,
-                                                         47.6, 46.36, 46.96])
+                                                         47.6, 46.36, 47.39])
         print(mean_mean)
                                                          
         return accuracy_tracking, mean_mean
@@ -349,6 +349,10 @@ with st.spinner("Wait for it...", show_time=True):
         table_19_game_df = table_all_df[table_all_df["Pl"] == 19]
         table_20_game_df = table_all_df[table_all_df["Pl"] == 20]
         table_21_game_df = table_all_df[table_all_df["Pl"] == 21]
+        table_22_game_df = table_all_df[table_all_df["Pl"] == 22]
+        table_23_game_df = table_all_df[table_all_df["Pl"] == 23]
+        #table_24_game_df = table_all_df[table_all_df["Pl"] == 24]
+
 
         
         #return table_1_game_df, table_2_game_df, table_3_game_df, table_4_game_df, table_5_game_df, table_6_game_df, table_7_game_df, table_8_game_df
@@ -944,7 +948,8 @@ with st.spinner("Wait for it...", show_time=True):
              "game_week20",
              "game_week21",
              "game_week22",
-             "game_week23"
+             "game_week23",
+             "game_week24"
              ),  key="gw_num_pick")
         
         
@@ -1152,6 +1157,9 @@ with st.spinner("Wait for it...", show_time=True):
         table_19_game_df = table_all_df[table_all_df["Pl"] == 19]
         table_20_game_df = table_all_df[table_all_df["Pl"] == 20]
         table_21_game_df = table_all_df[table_all_df["Pl"] == 21]
+        table_22_game_df = table_all_df[table_all_df["Pl"] == 22]
+        table_23_game_df = table_all_df[table_all_df["Pl"] == 23]
+
         
         # Mapping for selecte gameweek to correct table dataframe
         table_mapping = {
@@ -1175,7 +1183,11 @@ with st.spinner("Wait for it...", show_time=True):
             "post game week 18": table_18_game_df,
             "post game week 19": table_19_game_df,
             "post game week 20": table_20_game_df,
-            "post game week 21": table_21_game_df
+            "post game week 21": table_21_game_df,
+            "post game week 22": table_22_game_df,
+            "post game week 23": table_23_game_df
+
+
         }
         
         # Display pick and dataframe
@@ -1204,7 +1216,9 @@ with st.spinner("Wait for it...", show_time=True):
              "post game week 18",
              "post game week 19",
              "post game week 20",
-             "post game week 21"
+             "post game week 21",
+             "post game week 22",
+             "post game week 23"
              ),  key="full_tables")
         
         #Compare teams on the table    
